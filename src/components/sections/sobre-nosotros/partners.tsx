@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export const Partners = () => {
   return (
-    <div className="py-20 px-6 bg-[var(--negro)]">
+    <div className="py-10 md:py-20 px-6 bg-[var(--negro)]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
@@ -21,15 +21,15 @@ export const Partners = () => {
           {/* Left Column - Partnership Description */}
           <FadeUpCard delay={0.3} className="space-y-8">
             <div>
-              <AnimatedTitle delay={0.4} className="text-3xl font-bold text-[var(--verde-limon)] mb-4">
+              <AnimatedTitle delay={0.4} className="text-3xl font-bold text-[var(--verde-limon)] mb-4 text-center xl:text-left">
                 Especialización en Soluciones ERP
               </AnimatedTitle>
-              <FadeUpCard delay={0.6} className="text-lg font-[var(--font-now)] text-[var(--blanco)] leading-relaxed mb-6">
+              <FadeUpCard delay={0.6} className="text-lg text-center xl:text-left font-[var(--font-now)] text-[var(--blanco)] leading-relaxed mb-6">
                 Como <span className="text-[var(--verde)]">Partner Oficial de Odoo</span>,
-                Hannah Produce se especializa en implementar y personalizar soluciones ERP
+                Hannah Lab se especializa en implementar y personalizar soluciones ERP
                 que transforman la gestión empresarial de nuestros clientes.
               </FadeUpCard>
-              <FadeUpCard delay={0.8} className="text-lg font-[var(--font-now)] text-[var(--gris-claro)] leading-relaxed">
+              <FadeUpCard delay={0.8} className="text-lg text-center xl:text-left font-[var(--font-now)] text-[var(--gris-claro)] leading-relaxed">
                 Combinamos nuestra experiencia en desarrollo de software con la potencia
                 de Odoo para crear sistemas integrados que optimizan procesos, mejoran
                 la productividad e impulsan el crecimiento empresarial.
@@ -44,10 +44,10 @@ export const Partners = () => {
               <FadeUpCard delay={0.7} className="flex items-center">
                 <Image
                   width={240}
-                  height={200}
+                  height={240}
                   src="/images/logos/hannah.png"
-                  alt="Hannah Produce"
-                  className="h-24 md:h-40 object-contain"
+                  alt="Hannah Lab"
+                  className="h-auto w-auto object-contain"
                 />
               </FadeUpCard>
 
@@ -58,15 +58,13 @@ export const Partners = () => {
 
               {/* Odoo Logo */}
               <FadeUpCard delay={1.1} className="flex items-center">
-                <div className="rounded-lg p-4">
                   <Image
                     width={240}
-                    height={200}
+                    height={240}
                     src="/images/logos/odoo.png"
                     alt="Odoo"
-                    className="h-12 md:h-25 object-contain"
+                    className="h-auto w-auto object-contain"
                   />
-                </div>
               </FadeUpCard>
             </div>
           </FadeUpCard>

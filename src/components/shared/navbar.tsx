@@ -72,7 +72,7 @@ export const NavBar = () => {
         {/* Logo */}
         <div className="flex items-center">
           {/* <h1 className="text-2xl font-bold text-[var(--blanco)]">
-                        <span className="text-[var(--verde)]">Hannah</span> Produce
+                        <span className="text-[var(--verde)]">Hannah</span> Lab
                     </h1> */}
         </div>
 

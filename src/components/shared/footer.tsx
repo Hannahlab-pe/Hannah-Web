@@ -7,7 +7,7 @@ export const Footer = () => {
             <div className="flex-1">
               <div className="relative">
                 <div className="text-4xl md:text-9xl lg:text-[12rem] font-black text-[var(--gris-oscuro)] select-none pointer-events-none">
-                  Hannah Produce
+                  Hannah Lab
                 </div>
               </div>
             </div>
@@ -71,7 +71,7 @@ export const Footer = () => {
 
           <div className="mt-12 pt-8 border-t border-[var(--gris-oscuro)] text-center">
             <p className="text-[var(--gris)] text-sm">
-              ©2025 HANNAH PRODUCE S.A.C. TODOS LOS DERECHOS RESERVADOS.
+              ©2025 HANNAH LAB S.A.C. TODOS LOS DERECHOS RESERVADOS.
             </p>
           </div>
         </div>
