@@ -19,7 +19,7 @@ export const sendForm = async (
   data: ContactFormData
 ): Promise<ContactFormResponse> => {
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = process.env.NEXT_PUBLIC_HW_API_URL;
 
   try {
     const response = await fetch(`${API_URL}/contact`, {
