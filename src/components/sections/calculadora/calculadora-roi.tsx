@@ -95,7 +95,8 @@ const procesoDedicacion = (proc: Process): string => {
 };
 
 // ─── Tutorial Steps ─────────────────────────────────────────────────────────
-const TUTORIAL_STEPS = [
+type Placement = "top" | "bottom" | "left" | "right";
+const TUTORIAL_STEPS: { title: string; body: string; targetId: string; placement: Placement }[] = [
   {
     title: "👋 Bienvenido a la Calculadora ROI",
     body: "Descubre en <strong>3 pasos</strong> cuánto dinero pierde tu empresa en tareas manuales — y cuánto ahorrarías automatizándolas. Toma menos de 2 minutos.<br><br>Los resultados se actualizan <strong>en vivo</strong> mientras completas el formulario.",
