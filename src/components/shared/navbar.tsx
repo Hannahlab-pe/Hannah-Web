@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
   { id: "inicio", label: "Inicio" },
@@ -10,12 +11,17 @@ const navLinks = [
   { id: "contacto", label: "Contacto" },
 ];
 
+const DARK_BG_ROUTES = ["/calculadora"];
+
 export const NavBar = () => {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [activeSection, setActiveSection] = useState("inicio");
   const [onDarkSection, setOnDarkSection] = useState(false);
+
+  const isDarkRoute = DARK_BG_ROUTES.some((r) => pathname.startsWith(r));
 
   const scrollToSection = (sectionId: string) => {
     const el = document.getElementById(sectionId);
@@ -49,10 +55,11 @@ export const NavBar = () => {
     return () => obs.disconnect();
   }, []);
 
-  const textColor = onDarkSection ? "#ffffff" : "#000000";
-  const hoverColor = onDarkSection ? "#d6f576" : "var(--verde)";
-  const navBg = onDarkSection ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.35)";
-  const navBorder = onDarkSection ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.3)";
+  const dark = onDarkSection || isDarkRoute;
+  const textColor = dark ? "#ffffff" : "#000000";
+  const hoverColor = dark ? "#d6f576" : "var(--verde)";
+  const navBg = dark ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.35)";
+  const navBorder = dark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.3)";
 
   const toggleMobileMenu = () => {
     if (isMobileMenuOpen) { setIsClosing(true); setTimeout(() => { setIsMobileMenuOpen(false); setIsClosing(false); }, 300); }

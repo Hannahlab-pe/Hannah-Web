@@ -347,7 +347,7 @@ export const CalculadoraROI = () => {
 
         {/* ─── Hero ───────────────────────────────────────────────────── */}
         <section style={{ background: "#111827", borderBottom: "3px solid #4a8b00" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "72px 40px 56px" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "120px 40px 64px" }}>
             <p style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", color: "#6abf00", marginBottom: 14 }}>
               CALCULADORA ROI · AUTOMATIZACIÓN
             </p>
