@@ -240,22 +240,24 @@ export const CalculadoraROI = () => {
     const step = TUTORIAL_STEPS[stepIdx];
     const el = document.getElementById(step.targetId);
     if (!el) return;
+    // getBoundingClientRect() devuelve coordenadas relativas al viewport
     const rect = el.getBoundingClientRect();
     const pad = 8;
+    // Spotlight usa position:fixed → mismas coordenadas de viewport, sin scrollY
     setSpotlightRect({
-      top: rect.top + window.scrollY - pad,
+      top: rect.top - pad,
       left: rect.left - pad,
       width: rect.width + pad * 2,
       height: rect.height + pad * 2,
     });
+
     const tipW = 340;
-    const tipH = 260;
-    const gap = 18;
+    const tipH = 280;
+    const gap = 16;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
-    let top = 0,
-      left = 0;
+    let top = 0, left = 0;
     const p = step.placement;
 
     if (p === "bottom") {
@@ -268,10 +270,12 @@ export const CalculadoraROI = () => {
       top = rect.top + rect.height / 2 - tipH / 2;
       left = rect.right + gap;
     } else {
+      // left
       top = rect.top + rect.height / 2 - tipH / 2;
       left = rect.left - gap - tipW;
     }
 
+    // Mantener dentro del viewport
     left = Math.max(16, Math.min(left, vw - tipW - 16));
     top = Math.max(16, Math.min(top, vh - tipH - 16));
     setTooltipPos({ top, left });
@@ -659,7 +663,7 @@ export const CalculadoraROI = () => {
           {/* Spotlight */}
           <div
             style={{
-              position: "absolute",
+              position: "fixed",
               top: spotlightRect.top,
               left: spotlightRect.left,
               width: spotlightRect.width,
