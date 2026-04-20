@@ -20,34 +20,40 @@ export const HeroIllustration = () => {
     const ctx = gsap.context(() => {
       const main = gsap.timeline({ defaults: { ease: "power3.out" } });
 
+      // 0. Fade in the whole SVG
+      main.fromTo(svgRef.current,
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" }, 0
+      );
+
       // 1. Draw the main pipeline path
       main.fromTo(".pipeline-path",
         { strokeDashoffset: 1200 },
-        { strokeDashoffset: 0, duration: 2, stagger: 0.3 }, 0.3
+        { strokeDashoffset: 0, duration: 2, stagger: 0.3 }, 0.4
       );
 
       // 2. Cards appear
       main.fromTo(".card-el",
-        { opacity: 0, scale: 0.85, y: 15 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.7, stagger: 0.1 }, 0.6
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.7, stagger: 0.1 }, 0.7
       );
 
       // 3. Icons inside cards
       main.fromTo(".card-icon",
-        { opacity: 0, scale: 0 },
-        { opacity: 1, scale: 1, duration: 0.5, stagger: 0.08, ease: "back.out(2)" }, 1.0
+        { opacity: 0, scale: 0.8 },
+        { opacity: 1, scale: 1, duration: 0.45, stagger: 0.08, ease: "power2.out" }, 1.1
       );
 
       // 4. Labels
       main.fromTo(".label-el",
-        { opacity: 0, y: 8 },
-        { opacity: 1, y: 0, duration: 0.5, stagger: 0.06 }, 1.2
+        { opacity: 0, y: 6 },
+        { opacity: 1, y: 0, duration: 0.45, stagger: 0.06 }, 1.3
       );
 
       // 5. Center badge
       main.fromTo(".center-badge",
-        { opacity: 0, scale: 0.5 },
-        { opacity: 1, scale: 1, duration: 0.8, ease: "elastic.out(1, 0.5)" }, 1.0
+        { opacity: 0, scale: 0.85 },
+        { opacity: 1, scale: 1, duration: 0.7, ease: "power2.out" }, 1.05
       );
 
       // 6. Animated flow dots along pipeline paths
@@ -83,8 +89,8 @@ export const HeroIllustration = () => {
 
       // 9. Checkmarks appear
       main.fromTo(".check-mark",
-        { opacity: 0, scale: 0 },
-        { opacity: 1, scale: 1, duration: 0.4, stagger: 0.15, ease: "back.out(3)" }, 1.8
+        { opacity: 0, scale: 0.7 },
+        { opacity: 1, scale: 1, duration: 0.35, stagger: 0.12, ease: "power2.out" }, 1.8
       );
 
       // 10. Subtle continuous glow on processing
@@ -103,7 +109,7 @@ export const HeroIllustration = () => {
       viewBox="0 0 520 440"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ width: "100%", height: "auto" }}
+      style={{ width: "100%", height: "auto", opacity: 0 }}
     >
       {/* ============ FLOW PATHS ============ */}
       {/* Invisible guides for motionPath dots */}
