@@ -194,11 +194,7 @@ export const HeroIllustration = () => {
         <image href="/images/logos/hannah.png" x="230" y="180" width="60" height="60" clipPath="url(#center-clip)" preserveAspectRatio="xMidYMid meet" />
       </g>
 
-      {/* Processing label */}
-      <g className="label-el" opacity="0">
-        <rect x="220" y="262" width="80" height="24" rx="12" fill={V} opacity="0.08" />
-        <text x="260" y="278" textAnchor="middle" fill={V} fontSize="10" fontWeight="600" fontFamily="'Outfit', system-ui">Procesamiento</text>
-      </g>
+ 
 
       {/* Small processing indicators around center */}
       <g className="card-icon">

@@ -49,7 +49,7 @@ export const Footer = () => {
       </div>
 
       {/* Bottom bar */}
-      <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+      <div>
         <div style={{
           maxWidth: "1280px", margin: "0 auto", padding: "1.25rem 1.5rem",
           display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "1rem",
