@@ -1,293 +1,215 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+
+const navLinks = [
+  { id: "inicio", label: "Inicio" },
+  { id: "servicios", label: "Servicios" },
+  { id: "nosotros", label: "Nosotros" },
+  { id: "contacto", label: "Contacto" },
+];
 
 export const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
-
-  // Función para determinar si un link está activo
   const [activeSection, setActiveSection] = useState("inicio");
+  const [onDarkSection, setOnDarkSection] = useState(false);
 
-  // Función para scroll suave a secciones
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      });
-      setActiveSection(sectionId);
-    }
+    const el = document.getElementById(sectionId);
+    if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); setActiveSection(sectionId); }
   };
 
-  // Handle scroll effect for navbar
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [isScrolled]);
+  }, []);
 
-  // Toggle mobile menu with closing animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => { entries.forEach((entry) => { if (entry.isIntersecting) setActiveSection(entry.target.id); }); },
+      { threshold: 0.3, rootMargin: "-80px 0px 0px 0px" }
+    );
+    navLinks.forEach(({ id }) => { const el = document.getElementById(id); if (el) observer.observe(el); });
+    return () => observer.disconnect();
+  }, []);
+
+  // Detect when navbar is over a dark section
+  useEffect(() => {
+    const darkEl = document.getElementById("partnership");
+    if (!darkEl) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => setOnDarkSection(entry.isIntersecting),
+      { threshold: 0.1, rootMargin: "0px 0px -85% 0px" }
+    );
+    obs.observe(darkEl);
+    return () => obs.disconnect();
+  }, []);
+
+  const textColor = onDarkSection ? "#ffffff" : "#000000";
+  const hoverColor = onDarkSection ? "#d6f576" : "var(--verde)";
+  const navBg = onDarkSection ? "rgba(0,0,0,0.35)" : "rgba(255,255,255,0.35)";
+  const navBorder = onDarkSection ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.3)";
+
   const toggleMobileMenu = () => {
-    if (isMobileMenuOpen) {
-      // Si está abierto, iniciar animación de cierre
-      setIsClosing(true);
-      setTimeout(() => {
-        setIsMobileMenuOpen(false);
-        setIsClosing(false);
-      }, 300); // Duración de la animación de salida
-    } else {
-      // Si está cerrado, abrirlo directamente
-      setIsMobileMenuOpen(true);
-      setIsClosing(false);
-    }
+    if (isMobileMenuOpen) { setIsClosing(true); setTimeout(() => { setIsMobileMenuOpen(false); setIsClosing(false); }, 300); }
+    else { setIsMobileMenuOpen(true); setIsClosing(false); }
   };
 
-  // Función para cerrar el menú con animación desde botones/links
   const closeMobileMenu = () => {
-    if (isMobileMenuOpen) {
-      setIsClosing(true);
-      setTimeout(() => {
-        setIsMobileMenuOpen(false);
-        setIsClosing(false);
-      }, 300);
-    }
+    if (isMobileMenuOpen) { setIsClosing(true); setTimeout(() => { setIsMobileMenuOpen(false); setIsClosing(false); }, 300); }
   };
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 w-full py-4 px-6 transition-all duration-500 z-50 ${
-        isScrolled ? "navbar-blur" : "bg-transparent"
-      }`}
-    >
-      <div className="container mx-auto flex justify-between items-center">
-        {/* Logo */}
-        <div className="flex items-center">
-          {/* <h1 className="text-2xl font-bold text-[var(--blanco)]">
-                        <span className="text-[var(--verde)]">Hannah</span> Lab
-                    </h1> */}
-        </div>
+    <>
+      {/* Floating navbar */}
+      <nav style={{
+        position: "fixed", top: "1.25rem", left: "50%", transform: "translateX(-50%)",
+        zIndex: 50, transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+      }}>
+        <div style={{
+          display: "flex", alignItems: "center", gap: "0.25rem",
+          backgroundColor: navBg, borderRadius: "9999px",
+          padding: "0.5rem 0.5rem 0.5rem 0.75rem",
+          border: `1px solid ${navBorder}`,
+          backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+          boxShadow: isScrolled ? "0 8px 32px rgba(0,0,0,0.08)" : "0 4px 16px rgba(0,0,0,0.04)",
+          transition: "box-shadow 0.4s",
+        }}>
+          {/* Logo */}
+          <Link
+            href="/inicio"
+            style={{
+              width: "36px", height: "36px", borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              border: "none", cursor: "pointer", flexShrink: 0, transition: "transform 0.2s",
+              padding: 0, background: "#1a1a1a", overflow: "hidden",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
+          >
+            <Image src="/images/logos/hannah.png" alt="HannahLab" width={24} height={24} style={{ objectFit: "contain" }} />
+          </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-8">
-          <button
-            onClick={() => scrollToSection("inicio")}
-            className={`transition-colors duration-300 relative group ${
-              activeSection === "inicio"
-                ? "text-[var(--verde-limon)]"
-                : "text-[var(--blanco)] hover:text-[var(--verde-limon)]"
-            }`}
-          >
-            Inicio
-            <span className={`absolute -bottom-1 left-0 h-0.5 bg-[var(--verde-limon)] transition-all duration-300 ${
-              activeSection === "inicio" ? "w-full" : "w-0 group-hover:w-full"
-            }`}></span>
-          </button>
-          <button
-            onClick={() => scrollToSection("nosotros")}
-            className={`transition-colors duration-300 relative group ${
-              activeSection === "nosotros"
-                ? "text-[var(--verde-limon)]"
-                : "text-[var(--blanco)] hover:text-[var(--verde-limon)]"
-            }`}
-          >
-            Nosotros
-            <span className={`absolute -bottom-1 left-0 h-0.5 bg-[var(--verde-limon)] transition-all duration-300 ${
-              activeSection === "nosotros" ? "w-full" : "w-0 group-hover:w-full"
-            }`}></span>
-          </button>
-          <button
-            onClick={() => scrollToSection("contacto")}
-            className={`transition-colors duration-300 relative group ${
-              activeSection === "contacto"
-                ? "text-[var(--verde-limon)]"
-                : "text-[var(--blanco)] hover:text-[var(--verde-limon)]"
-            }`}
-          >
-            Contacto
-            <span className={`absolute -bottom-1 left-0 h-0.5 bg-[var(--verde-limon)] transition-all duration-300 ${
-              activeSection === "contacto" ? "w-full" : "w-0 group-hover:w-full"
-            }`}></span>
-          </button>
-          {/* <button
-            className="px-4 py-2 rounded transition-all duration-300 bg-[var(--verde)] text-[var(--negro)] hover:bg-[var(--verde-limon)]"
-            onClick={() => router.push("/portafolio")}
-          >
-            Portafolio
-          </button> */}
-        </div>
+          {/* Desktop links */}
+          <div className="hidden md:flex" style={{ alignItems: "center", gap: "0.125rem", marginLeft: "0.5rem" }}>
+            {navLinks.map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => scrollToSection(id)}
+                style={{
+                  padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "0.85rem", fontWeight: 500,
+                  border: "none", cursor: "pointer", transition: "all 0.25s",
+                  color: activeSection === id ? hoverColor : textColor,
+                  background: activeSection === id ? (onDarkSection ? "rgba(255,255,255,0.08)" : "rgba(74,139,0,0.08)") : "transparent",
+                }}
+                onMouseEnter={(e) => { if (activeSection !== id) e.currentTarget.style.color = hoverColor; }}
+                onMouseLeave={(e) => { if (activeSection !== id) e.currentTarget.style.color = textColor; }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
+          {/* CTA */}
+          <Link
+            className="hidden md:block"
+            href="/login"
+            style={{
+              marginLeft: "0.5rem", padding: "0.5rem 1.25rem", borderRadius: "9999px",
+              backgroundColor: "var(--verde)", color: "#ffffff", fontSize: "0.85rem",
+              fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.25s",
+              whiteSpace: "nowrap", textDecoration: "none",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "var(--verde-accent)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "var(--verde)"; }}
+          >
+            Soy cliente
+          </Link>
+
+          {/* Mobile toggle */}
           <button
             onClick={toggleMobileMenu}
-            className="text-[var(--blanco)] focus:outline-none"
+            className="md:hidden"
+            style={{ color: textColor, padding: "8px", background: "none", border: "none", cursor: "pointer", marginLeft: "0.25rem" }}
           >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {isMobileMenuOpen ? (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              ) : (
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              )}
+            <svg style={{ width: "18px", height: "18px" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {isMobileMenuOpen
+                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              }
             </svg>
           </button>
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile Menu */}
+      {/* Mobile menu */}
       {(isMobileMenuOpen || isClosing) && (
         <>
-          {/* Overlay con animación */}
           <div
-            className={`fixed inset-0 bg-black/70 z-40 md:hidden ${
-              isClosing ? "animate-fade-out" : "animate-fade-in"
-            }`}
+            className={isClosing ? "animate-fade-out" : "animate-fade-in"}
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)", zIndex: 40 }}
             onClick={toggleMobileMenu}
-          ></div>
-
-          {/* Mobile Menu Panel con animación reversa */}
+          />
           <div
-            className={`fixed top-0 left-0 right-0 w-full h-auto bg-white z-50 md:hidden ${
-              isClosing ? "animate-slide-up" : "animate-slide-down"
-            }`}
+            className={isClosing ? "animate-slide-up" : "animate-slide-down"}
+            style={{
+              position: "fixed", top: 0, left: 0, right: 0,
+              background: "#f0f0f0", zIndex: 55,
+              borderRadius: "0 0 1.5rem 1.5rem",
+            }}
           >
-            {/* Header del menú */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800">MENÚ</h3>
-              <button
-                onClick={toggleMobileMenu}
-                className="text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.25rem 1.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ width: "32px", height: "32px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", background: "#1a1a1a" }}>
+                  <Image src="/images/logos/hannah.png" alt="HannahLab" width={22} height={22} style={{ objectFit: "contain" }} />
+                </div>
+                <span style={{ color: "var(--text-primary)", fontWeight: 600, fontSize: "1rem" }}>HannahLab</span>
+              </div>
+              <button onClick={toggleMobileMenu} style={{ color: "var(--text-secondary)", padding: "8px", background: "none", border: "none", cursor: "pointer" }}>
+                <svg style={{ width: "20px", height: "20px" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-
-            {/* Navigation Links con animación escalonada */}
-            <div className="flex flex-col p-6 space-y-6">
-              <button
-                onClick={() => {
-                  scrollToSection("inicio");
-                  closeMobileMenu();
-                }}
-                className={`border-b border-gray-200 text-xl font-medium relative group transition-colors duration-300 py-2 text-left ${
-                  activeSection === "inicio" 
-                    ? "text-[var(--verde)]" 
-                    : "text-gray-800"
-                } ${
-                  isClosing ? "animate-fade-out-down" : "animate-fade-in-up"
-                }`}
-                style={{ animationDelay: isClosing ? "0s" : "0.1s" }}
-              >
-                Inicio
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-[var(--verde)] transition-all duration-300 ${
-                  activeSection === "inicio" ? "w-full" : "w-0 group-hover:w-full"
-                }`}></span>
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection("nosotros");
-                  closeMobileMenu();
-                }}
-                className={`border-b border-gray-200 text-xl font-medium relative group transition-colors duration-300 py-2 text-left ${
-                  activeSection === "nosotros" 
-                    ? "text-[var(--verde)]" 
-                    : "text-gray-800"
-                } ${
-                  isClosing ? "animate-fade-out-down" : "animate-fade-in-up"
-                }`}
-                style={{ animationDelay: isClosing ? "0.1s" : "0.3s" }}
-              >
-                Nosotros
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-[var(--verde)] transition-all duration-300 ${
-                  activeSection === "nosotros" ? "w-full" : "w-0 group-hover:w-full"
-                }`}></span>
-              </button>
-              <button
-                onClick={() => {
-                  scrollToSection("contacto");
-                  closeMobileMenu();
-                }}
-                className={`text-xl font-medium relative group transition-colors duration-300 py-2 text-left ${
-                  activeSection === "contacto" 
-                    ? "text-[var(--verde)]" 
-                    : "text-gray-800"
-                } ${
-                  isClosing ? "animate-fade-out-down" : "animate-fade-in-up"
-                }`}
-                style={{ animationDelay: isClosing ? "0.15s" : "0.4s" }}
-              >
-                Contacto
-                <span className={`absolute -bottom-1 left-0 h-0.5 bg-[var(--verde)] transition-all duration-300 ${
-                  activeSection === "contacto" ? "w-full" : "w-0 group-hover:w-full"
-                }`}></span>
-              </button>
-
-              {/* Action Buttons con animación */}
-              <div
-                className={`pt-6 space-y-4 ${
-                  isClosing ? "animate-fade-out-down" : "animate-fade-in-up"
-                }`}
-                style={{ animationDelay: isClosing ? "0.2s" : "0.5s" }}
-              >
-                {/* <button
-                  className="w-full px-6 py-3 rounded-lg font-medium transition-all duration-300 bg-[var(--verde)] text-white hover:bg-[var(--verde-limon)]"
-                  onClick={() => {
-                    router.push("/portafolio");
-                    closeMobileMenu();
-                  }}
-                >
-                  Ver Portafolio
-                </button> */}
+            <div style={{ display: "flex", flexDirection: "column", padding: "0 1.5rem 1.5rem", gap: "2px" }}>
+              {navLinks.map(({ id, label }, i) => (
                 <button
-                  className="w-full px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:border-[var(--verde)] hover:text-[var(--verde)] transition-all duration-300"
-                  onClick={() => {
-                    scrollToSection("contacto");
-                    closeMobileMenu();
+                  key={id}
+                  onClick={() => { scrollToSection(id); closeMobileMenu(); }}
+                  className={isClosing ? "animate-fade-out-down" : "animate-fade-in-up"}
+                  style={{
+                    animationDelay: isClosing ? `${i * 0.05}s` : `${0.1 + i * 0.08}s`,
+                    textAlign: "left", padding: "0.875rem 1rem", borderRadius: "12px", fontSize: "1rem", fontWeight: 500,
+                    border: "none", cursor: "pointer", transition: "all 0.3s",
+                    color: activeSection === id ? "var(--verde)" : "var(--text-secondary)",
+                    background: activeSection === id ? "rgba(74,139,0,0.08)" : "transparent",
                   }}
                 >
-                  Contáctanos
+                  {label}
                 </button>
-              </div>
+              ))}
+              <Link
+                className={isClosing ? "animate-fade-out-down" : "animate-fade-in-up"}
+                href="/login"
+                style={{
+                  animationDelay: isClosing ? "0.2s" : "0.45s",
+                  marginTop: "0.75rem", padding: "0.875rem", borderRadius: "9999px",
+                  backgroundColor: "var(--verde)", color: "#ffffff", fontSize: "0.95rem",
+                  fontWeight: 600, border: "none", cursor: "pointer", textAlign: "center", width: "100%",
+                  textDecoration: "none", display: "block",
+                }}
+                onClick={() => { closeMobileMenu(); }}
+              >
+                Soy cliente
+              </Link>
             </div>
           </div>
         </>
       )}
-    </nav>
+    </>
   );
 };

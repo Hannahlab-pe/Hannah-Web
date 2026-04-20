@@ -1,146 +1,177 @@
 @import "tailwindcss";
-
-/* Import Righteous font */
-@font-face {
-  font-family: "Righteous";
-  src: url("/fonts/primary/Righteous-Regular.ttf") format("truetype");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&family=Outfit:wght@100..900&family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
 
 :root {
-  /* Color Palette */
-  --verde: #93ca07;
-  --verde-limon: #d6f576;
-  --negro: #040404; /* Color princial del background */
-  --gris: #646463;
-  --gris-claro: #a4a4a4;
-  --gris-oscuro: #353535;
-  --blanco: #f1f1f1;
-
-  /* Font Family */
-  --font-now: "Now", sans-serif;
-  --font-now-alt: "NowAlt", sans-serif;
-  --font-righteous: "Righteous", cursive;
+  --verde: #3f7008;
+  --verde-accent: #5ba300;
+  --bg: #ffffff;
+  --bg-soft: #f8f9fa;
+  --bg-card: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
 }
 
-::-webkit-scrollbar {
-  display: none;
-  /* Chrome, Safari y Opera */
-}
+::-webkit-scrollbar { display: none; }
 
 body {
-  background-color: var(--negro);
+  background-color: var(--bg);
+  overflow-x: hidden;
+  font-family: "Outfit", system-ui, sans-serif;
+  color: var(--text-primary);
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-width: none;
 }
 
-/* Apply Righteous font to all heading elements */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-righteous);
+  font-family: "Google Sans", system-ui, sans-serif;
+  color: var(--text-primary);
 }
 
-/* Animaciones para el menú móvil */
+/* ============================
+   NAVBAR
+   ============================ */
+.navbar-glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+
+/* ============================
+   GRADIENT TEXT
+   ============================ */
+.gradient-text {
+  background: linear-gradient(135deg, #4a8b00 0%, #6abf00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================
+   CARDS
+   ============================ */
+.card-modern {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-modern:hover {
+  border-color: var(--verde);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(74, 139, 0, 0.1);
+}
+
+/* ============================
+   BADGE
+   ============================ */
+.badge-verde {
+  background: rgba(74, 139, 0, 0.08);
+  border: 1px solid rgba(74, 139, 0, 0.15);
+  color: var(--verde);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.375rem 1rem;
+  border-radius: 9999px;
+}
+
+/* ============================
+   BUTTONS
+   ============================ */
+.btn-primary {
+  background: var(--verde);
+  color: #ffffff;
+  font-weight: 700;
+  padding: 0.875rem 2rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary:hover {
+  background: var(--verde-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(74, 139, 0, 0.25);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-secondary:hover {
+  border-color: var(--verde);
+  color: var(--verde);
+  background: rgba(74, 139, 0, 0.04);
+  transform: translateY(-2px);
+}
+
+/* ============================
+   MARQUEE
+   ============================ */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+/* ============================
+   DIVIDER
+   ============================ */
+.section-divider {
+  height: 1px;
+  background: var(--border);
+/*  */}
+
+/* ============================
+   MOBILE MENU
+   ============================ */
 @keyframes slideDown {
-  0% {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  0% { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }
-
 @keyframes slideUp {
-  0% {
-    transform: translateY(0);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0; }
 }
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
+@keyframes fadeIn { 0% { opacity: 0; } 100% { opacity: 1; } }
+@keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeOutDown {
-  0% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(20px); }
 }
 
-.animate-slide-down {
-  animation: slideDown 0.3s ease-out;
-}
+.animate-slide-down { animation: slideDown 0.3s ease-out; }
+.animate-slide-up { animation: slideUp 0.3s ease-in; }
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-fade-out { animation: fadeOut 0.3s ease-in; }
+.animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; opacity: 0; }
+.animate-fade-out-down { animation: fadeOutDown 0.3s ease-in forwards; }
 
-.animate-slide-up {
-  animation: slideUp 0.3s ease-in;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.animate-fade-out {
-  animation: fadeOut 0.3s ease-in;
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.4s ease-out forwards;
-  opacity: 0;
-}
-
-.animate-fade-out-down {
-  animation: fadeOutDown 0.3s ease-in forwards;
-}
-
-/* Infinite scroll animation for technology carousel */
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
-
-.animate-scroll {
-  animation: scroll 30s linear infinite;
+/* ============================
+   FORM INPUTS
+   ============================ */
+input:focus, select:focus, textarea:focus {
+  border-color: var(--verde) !important;
+  box-shadow: 0 0 0 3px rgba(74, 139, 0, 0.08) !important;
+  outline: none;
 }
