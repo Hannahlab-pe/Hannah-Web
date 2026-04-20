@@ -114,6 +114,22 @@ export const NavBar = () => {
             ))}
           </div>
 
+          {/* Calculadora link */}
+          <Link
+            className="hidden md:block"
+            href="/calculadora"
+            style={{
+              marginLeft: "0.25rem", padding: "0.5rem 1rem", borderRadius: "9999px",
+              backgroundColor: "transparent", color: textColor, fontSize: "0.85rem",
+              fontWeight: 500, border: `1px solid ${onDarkSection ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.15)"}`,
+              cursor: "pointer", transition: "all 0.25s", whiteSpace: "nowrap", textDecoration: "none",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = hoverColor; e.currentTarget.style.borderColor = hoverColor; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = textColor; e.currentTarget.style.borderColor = onDarkSection ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.15)"; }}
+          >
+            Calculadora ROI
+          </Link>
+
           {/* CTA */}
           <Link
             className="hidden md:block"
@@ -194,10 +210,24 @@ export const NavBar = () => {
               ))}
               <Link
                 className={isClosing ? "animate-fade-out-down" : "animate-fade-in-up"}
+                href="/calculadora"
+                style={{
+                  animationDelay: isClosing ? "0.15s" : "0.42s",
+                  marginTop: "0.5rem", padding: "0.875rem", borderRadius: "9999px",
+                  backgroundColor: "transparent", color: "var(--verde)", fontSize: "0.95rem",
+                  fontWeight: 600, border: "1px solid var(--verde)", cursor: "pointer", textAlign: "center", width: "100%",
+                  textDecoration: "none", display: "block", boxSizing: "border-box",
+                }}
+                onClick={() => { closeMobileMenu(); }}
+              >
+                Calculadora ROI
+              </Link>
+              <Link
+                className={isClosing ? "animate-fade-out-down" : "animate-fade-in-up"}
                 href="/login"
                 style={{
-                  animationDelay: isClosing ? "0.2s" : "0.45s",
-                  marginTop: "0.75rem", padding: "0.875rem", borderRadius: "9999px",
+                  animationDelay: isClosing ? "0.2s" : "0.5s",
+                  marginTop: "0.5rem", padding: "0.875rem", borderRadius: "9999px",
                   backgroundColor: "var(--verde)", color: "#ffffff", fontSize: "0.95rem",
                   fontWeight: 600, border: "none", cursor: "pointer", textAlign: "center", width: "100%",
                   textDecoration: "none", display: "block",
