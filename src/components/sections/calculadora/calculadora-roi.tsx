@@ -347,77 +347,58 @@ export const CalculadoraROI = () => {
   return (
     <>
       {/* ─── Page ─────────────────────────────────────────────────────── */}
-      <div style={{ fontFamily: "'Outfit', system-ui, sans-serif", background: "#fff", color: "#111827" }}>
+      <div className="calc-page">
 
-        {/* ─── Hero ───────────────────────────────────────────────────── */}
-        <section style={{ background: "#111827", borderBottom: "3px solid #4a8b00" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "120px 40px 64px" }} className="calc-hero-inner">
-            <p style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", color: "#6abf00", marginBottom: 14 }}>
-              CALCULADORA ROI · AUTOMATIZACIÓN
-            </p>
-            <h1
-              id="calc-hero-title"
-              style={{ fontSize: "clamp(28px,4.5vw,52px)", fontWeight: 700, lineHeight: 1.1, letterSpacing: -1, color: "#fff", marginBottom: 18, maxWidth: 860 }}
-            >
+        {/* ─── Hero ─────────────────────────────────────────────────── */}
+        <section className="c-hero">
+          <div className="c-wrap">
+            <span className="badge-verde" style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: "1.25rem" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--verde-accent)", display: "inline-block" }} />
+              Calculadora ROI · Automatización
+            </span>
+            <h1 id="calc-hero-title" className="c-hero-h1">
               ¿Cuánto le cuesta a tu empresa el trabajo manual?
             </h1>
-            <p style={{ fontSize: 17, color: "#9ca3af", maxWidth: 680, lineHeight: 1.6, marginBottom: 28 }}>
+            <p className="c-hero-sub">
               Descubre el costo real de tus procesos manuales y visualiza el ahorro que obtendrías como partner de Hannah Lab.
             </p>
-            <button
-              onClick={openTutorial}
-              style={{
-                fontFamily: "monospace", fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase",
-                background: "transparent", color: "#fff", border: "1px solid #374151", padding: "9px 16px", borderRadius: 4, cursor: "pointer",
-                display: "inline-flex", alignItems: "center", gap: 8, transition: "border-color 0.15s, color 0.15s",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#4a8b00"; (e.currentTarget as HTMLButtonElement).style.color = "#6abf00"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#374151"; (e.currentTarget as HTMLButtonElement).style.color = "#fff"; }}
-            >
+            <button className="c-how-btn" onClick={openTutorial}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4a8b00", display: "inline-block" }} />
               ¿Cómo usar?
             </button>
           </div>
         </section>
 
-        {/* ─── Main Grid ──────────────────────────────────────────────── */}
-        <main style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 40px 80px", boxSizing: "border-box" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 32, alignItems: "start" }} className="calc-grid">
+        {/* ─── Main content ─────────────────────────────────────────── */}
+        <div className="c-wrap c-body">
+          <div className="c-grid">
 
-            {/* ─── LEFT: Inputs ─────────────────────────────────────── */}
-            <section>
-              <p style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#9ca3af", marginBottom: 20 }}>
-                Agregar Proceso Manual
-              </p>
+            {/* LEFT: Inputs */}
+            <section className="c-form-col">
+              <p className="c-label">Agregar Proceso Manual</p>
 
               {processes.map((proc, pIdx) => (
                 <div
                   key={proc.id}
-                  style={{ border: "1px solid #e5e7eb", borderRadius: 8, padding: 24, marginBottom: 20, background: "#fff", transition: "border-color 0.2s" }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = "#4a8b00")}
-                  onMouseLeave={e => (e.currentTarget.style.borderColor = "#e5e7eb")}
+                  className="c-process-card"
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--verde)")}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--border)")}
                 >
-                  {/* Process header */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                    <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#9ca3af" }}>
-                      Proceso {pIdx + 1}
-                    </span>
+                  <div className="c-card-hdr">
+                    <span className="c-label" style={{ marginBottom: 0 }}>Proceso {pIdx + 1}</span>
                     {processes.length > 1 && (
                       <button
+                        className="c-del-btn"
                         onClick={() => removeProcess(proc.id)}
                         title="Eliminar proceso"
-                        style={{ background: "none", border: "none", color: "#9ca3af", fontSize: 20, cursor: "pointer", padding: "2px 6px", borderRadius: 4, lineHeight: 1 }}
                         onMouseEnter={e => (e.currentTarget.style.color = "#dc2626")}
                         onMouseLeave={e => (e.currentTarget.style.color = "#9ca3af")}
                       >×</button>
                     )}
                   </div>
 
-                  {/* Process name */}
-                  <div style={{ marginBottom: 16 }}>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "#374151", marginBottom: 6 }}>
-                      Nombre del proceso
-                    </label>
+                  <div className="c-field">
+                    <label style={labelStyle}>Nombre del proceso</label>
                     <input
                       id={pIdx === 0 ? "first-nombre-input" : undefined}
                       type="text"
@@ -430,29 +411,25 @@ export const CalculadoraROI = () => {
                     />
                   </div>
 
-                  {/* Roles */}
                   {proc.roles.map((role, rIdx) => (
                     <div
                       key={role.id}
                       id={pIdx === 0 && rIdx === 0 ? "first-role-card" : undefined}
-                      style={{ background: "#f8f9fa", borderRadius: 6, padding: 18, marginBottom: 10 }}
+                      className="c-role-card"
                     >
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                        <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#9ca3af" }}>
-                          Rol {rIdx + 1}
-                        </span>
+                      <div className="c-card-hdr">
+                        <span className="c-label" style={{ marginBottom: 0 }}>Rol {rIdx + 1}</span>
                         {proc.roles.length > 1 && (
                           <button
+                            className="c-del-btn"
                             onClick={() => removeRole(proc.id, role.id)}
                             title="Eliminar rol"
-                            style={{ background: "none", border: "none", color: "#9ca3af", fontSize: 18, cursor: "pointer", padding: "2px 6px", lineHeight: 1, borderRadius: 4 }}
                             onMouseEnter={e => (e.currentTarget.style.color = "#dc2626")}
                             onMouseLeave={e => (e.currentTarget.style.color = "#9ca3af")}
                           >×</button>
                         )}
                       </div>
-
-                      <div style={{ marginBottom: 14 }}>
+                      <div className="c-field">
                         <label style={labelStyle}>Tipo de empleado</label>
                         <input
                           type="text"
@@ -464,9 +441,8 @@ export const CalculadoraROI = () => {
                           onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
                         />
                       </div>
-
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="role-inputs-grid">
-                        <div>
+                      <div className="c-role-grid">
+                        <div className="c-field">
                           <label style={labelStyle}>Cantidad</label>
                           <input
                             type="number" min="0" step="1"
@@ -478,7 +454,7 @@ export const CalculadoraROI = () => {
                             onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
                           />
                         </div>
-                        <div>
+                        <div className="c-field">
                           <label style={labelStyle}>Sueldo mensual (S/)</label>
                           <input
                             type="number" min="0" step="100"
@@ -490,7 +466,7 @@ export const CalculadoraROI = () => {
                             onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
                           />
                         </div>
-                        <div>
+                        <div className="c-field">
                           <label style={labelStyle}>Horas trabajadas al mes</label>
                           <input
                             type="number" min="0" step="1"
@@ -501,9 +477,9 @@ export const CalculadoraROI = () => {
                             onFocus={e => (e.target.style.borderColor = "#4a8b00")}
                             onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
                           />
-                          <small style={{ color: "#9ca3af", fontSize: 10, fontFamily: "monospace" }}>160 = 40HH · 192 = 48HH</small>
+                          <small className="c-hint">160 = 40HH · 192 = 48HH</small>
                         </div>
-                        <div>
+                        <div className="c-field">
                           <label style={labelStyle}>Horas por proyecto</label>
                           <input
                             type="number" min="0" step="1"
@@ -514,45 +490,31 @@ export const CalculadoraROI = () => {
                             onFocus={e => (e.target.style.borderColor = "#4a8b00")}
                             onBlur={e => (e.target.style.borderColor = "#e5e7eb")}
                           />
-                          <small style={{ color: "#9ca3af", fontSize: 10, fontFamily: "monospace" }}>dedicadas a este proceso</small>
+                          <small className="c-hint">dedicadas a este proceso</small>
                         </div>
                       </div>
                     </div>
                   ))}
 
                   <button
+                    className="c-ghost-btn"
                     onClick={() => addRole(proc.id)}
-                    style={ghostBtnStyle}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#4a8b00"; (e.currentTarget as HTMLButtonElement).style.color = "#4a8b00"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#e5e7eb"; (e.currentTarget as HTMLButtonElement).style.color = "#6b7280"; }}
                   >
                     + Agregar otro empleado / rol
                   </button>
                 </div>
               ))}
 
-              <button
-                onClick={addProcess}
-                style={{ ...ghostBtnStyle, borderStyle: "solid", borderColor: "#e5e7eb" }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#4a8b00"; (e.currentTarget as HTMLButtonElement).style.color = "#4a8b00"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "#e5e7eb"; (e.currentTarget as HTMLButtonElement).style.color = "#6b7280"; }}
-              >
+              <button className="c-ghost-btn c-ghost-btn--solid" onClick={addProcess}>
                 + Agregar otro proceso
               </button>
             </section>
 
-            {/* ─── RIGHT: Results ───────────────────────────────────── */}
-            <aside style={{ position: "sticky", top: 24 }}>
-              <p style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#9ca3af", marginBottom: 20 }}>
-                Resultados en tiempo real
-              </p>
+            {/* RIGHT: Results */}
+            <aside className="c-results-col">
+              <p className="c-label">Resultados en tiempo real</p>
 
-              {/* Summary cards */}
-              <div
-                id="summary-grid"
-                style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}
-                className="summary-cards"
-              >
+              <div id="summary-grid" className="c-stat-grid">
                 <StatCard label="Costo mensual oculto" value={fmtSoles(totalMonthly)} sub="por mes" />
                 <StatCard label="Costo anual perdido" value={fmtSoles(totalYearly)} sub="al año" />
                 <StatCard label="Equivalente en sueldos" value={salariesEq > 0 ? fmtNum(salariesEq, 1) : "--"} sub="sueldos mensuales" />
@@ -560,39 +522,32 @@ export const CalculadoraROI = () => {
                 <StatCard label="% jornada en tareas manuales" value={dedicacion > 0 ? fmtNum(dedicacion, 1) + "%" : "--%"} sub="del tiempo productivo" />
               </div>
 
-              {/* Breakdown table */}
-              <div style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden", marginBottom: 20 }}>
-                <div style={{ padding: "14px 20px", borderBottom: "1px solid #e5e7eb", fontFamily: "monospace", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#9ca3af" }}>
-                  Desglose por proceso
-                </div>
+              <div className="c-breakdown">
+                <div className="c-breakdown-hdr">Desglose por proceso</div>
                 <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <table className="c-table">
                     <thead>
-                      <tr style={{ background: "#f8f9fa" }}>
+                      <tr>
                         {["Proceso", "Empl.", "Hrs/proy.", "% Ded.", "Mensual", "Anual"].map(h => (
-                          <th key={h} style={{ textAlign: "left", padding: "10px 14px", fontFamily: "monospace", fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: "#9ca3af", borderBottom: "1px solid #e5e7eb", fontWeight: 700, whiteSpace: "nowrap" }}>
-                            {h}
-                          </th>
+                          <th key={h}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {breakdownRows.length > 0 ? (
                         breakdownRows.map((p, idx) => (
-                          <tr key={p.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
-                            <td style={{ padding: "12px 14px", color: "#374151" }}>{p.nombre || `Proceso ${idx + 1}`}</td>
-                            <td style={{ padding: "12px 14px", color: "#374151" }}>{fmtNum(processEmployees(p), 0)}</td>
-                            <td style={{ padding: "12px 14px", color: "#374151" }}>{fmtNum(processHours(p), 0)}</td>
-                            <td style={{ padding: "12px 14px", color: "#374151" }}>{procesoDedicacion(p)}</td>
-                            <td style={{ padding: "12px 14px", fontFamily: "monospace", fontWeight: 700, color: "#111827", textAlign: "right" }}>{fmtSoles(processCost(p))}</td>
-                            <td style={{ padding: "12px 14px", fontFamily: "monospace", fontWeight: 700, color: "#111827", textAlign: "right" }}>{fmtSoles(processCost(p) * 12)}</td>
+                          <tr key={p.id}>
+                            <td>{p.nombre || `Proceso ${idx + 1}`}</td>
+                            <td>{fmtNum(processEmployees(p), 0)}</td>
+                            <td>{fmtNum(processHours(p), 0)}</td>
+                            <td>{procesoDedicacion(p)}</td>
+                            <td className="td-r">{fmtSoles(processCost(p))}</td>
+                            <td className="td-r">{fmtSoles(processCost(p) * 12)}</td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={6} style={{ padding: 24, textAlign: "center", color: "#9ca3af", fontSize: 13 }}>
-                            Agrega un proceso para ver el desglose
-                          </td>
+                          <td colSpan={6} className="td-empty">Agrega un proceso para ver el desglose</td>
                         </tr>
                       )}
                     </tbody>
@@ -600,53 +555,33 @@ export const CalculadoraROI = () => {
                 </div>
               </div>
 
-              {/* Insight */}
-              <div style={{ background: "#f8f9fa", borderLeft: "4px solid #4a8b00", padding: "20px 24px", borderRadius: "0 8px 8px 0", marginBottom: 20 }}>
-                <p style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: "1.5px", textTransform: "uppercase", color: "#9ca3af", marginBottom: 8 }}>
-                  Insight
-                </p>
-                <p
-                  style={{ fontSize: 14, lineHeight: 1.7, color: "#4b5563" }}
-                  dangerouslySetInnerHTML={{ __html: insightText }}
-                />
+              <div className="c-insight">
+                <p className="c-label" style={{ marginBottom: 8 }}>Insight</p>
+                <p className="c-insight-text" dangerouslySetInnerHTML={{ __html: insightText }} />
               </div>
             </aside>
           </div>
-        </main>
+        </div>
 
-        {/* ─── CTA ──────────────────────────────────────────────────────── */}
-        <section style={{ background: "#111827", padding: "80px 40px" }} className="calc-cta-section">
-          <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 40, alignItems: "center" }} className="cta-grid">
-            <div>
-              <p style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", color: "#4a8b00", marginBottom: 14 }}>
-                Siguiente paso
-              </p>
-              <h2 style={{ fontSize: "clamp(26px,3.5vw,40px)", fontWeight: 700, lineHeight: 1.1, letterSpacing: -0.5, color: "#fff", marginBottom: 14 }}>
-                ¿Listo para redirigir ese dinero?
-              </h2>
-              <p style={{ fontSize: 16, color: "#9ca3af", lineHeight: 1.6, maxWidth: 480 }}>
-                En Hannah Lab convertimos ese costo invisible en una implementación que se paga sola.
-              </p>
+        {/* ─── CTA ──────────────────────────────────────────────────── */}
+        <section className="c-cta">
+          <div className="c-wrap c-cta-inner">
+            <div className="c-cta-text">
+              <p className="c-label" style={{ color: "#6abf00", marginBottom: 14 }}>Siguiente paso</p>
+              <h2 className="c-cta-h2">¿Listo para redirigir ese dinero?</h2>
+              <p className="c-cta-body">En Hannah Lab convertimos ese costo invisible en una implementación que se paga sola.</p>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 14 }}>
+            <div className="c-cta-actions">
               <a
                 id="cta-whatsapp"
                 href="https://wa.me/51925223153?text=Hola,%20quiero%20saber%20cómo%20reducir%20mis%20costos%20operativos%20con%20automatización"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  fontFamily: "monospace", fontSize: 13, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase",
-                  background: "#4a8b00", color: "#fff", padding: "16px 28px", borderRadius: 6, textDecoration: "none",
-                  display: "inline-flex", alignItems: "center", gap: 8, transition: "background 0.15s",
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#3f7008")}
-                onMouseLeave={e => (e.currentTarget.style.background = "#4a8b00")}
+                className="c-cta-btn"
               >
                 Hablar con un especialista →
               </a>
-              <p style={{ fontFamily: "monospace", fontSize: 11, color: "#6b7280", letterSpacing: 0.5 }}>
-                Respuesta en menos de 24h · WhatsApp directo
-              </p>
+              <p className="c-cta-note">Respuesta en menos de 24h · WhatsApp directo</p>
             </div>
           </div>
         </section>
@@ -697,23 +632,15 @@ export const CalculadoraROI = () => {
             }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Step label */}
             <div style={{ fontFamily: "monospace", fontSize: 10, fontWeight: 700, letterSpacing: "1.5px", textTransform: "uppercase", color: "#4a8b00", marginBottom: 10, display: "flex", justifyContent: "space-between" }}>
               <span>Tutorial</span>
               <span style={{ color: "#6b7280" }}>{tutStep + 1} / {TUTORIAL_STEPS.length}</span>
             </div>
-
-            {/* Progress */}
             <div style={{ display: "flex", gap: 4, marginBottom: 14 }}>
               {TUTORIAL_STEPS.map((_, i) => (
-                <div
-                  key={i}
-                  style={{ flex: 1, height: 3, borderRadius: 2, background: i <= tutStep ? "#4a8b00" : "#1f2937", opacity: i < tutStep ? 0.5 : 1, transition: "background 0.25s" }}
-                />
+                <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= tutStep ? "#4a8b00" : "#1f2937", opacity: i < tutStep ? 0.5 : 1, transition: "background 0.25s" }} />
               ))}
             </div>
-
-            {/* Content */}
             <p style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3, marginBottom: 8 }}>
               {TUTORIAL_STEPS[tutStep].title}
             </p>
@@ -721,13 +648,8 @@ export const CalculadoraROI = () => {
               style={{ fontSize: 13, lineHeight: 1.55, color: "#9ca3af", marginBottom: 18 }}
               dangerouslySetInnerHTML={{ __html: TUTORIAL_STEPS[tutStep].body }}
             />
-
-            {/* Actions */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <button
-                onClick={closeTutorial}
-                style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: "6px 0" }}
-              >
+              <button onClick={closeTutorial} style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: "uppercase", background: "none", border: "none", color: "#6b7280", cursor: "pointer", padding: "6px 0" }}>
                 Saltar
               </button>
               <div style={{ display: "flex", gap: 8 }}>
@@ -750,28 +672,89 @@ export const CalculadoraROI = () => {
         </div>
       )}
 
-      {/* Responsive styles */}
+      {/* ─── Styles ───────────────────────────────────────────────────────── */}
       <style>{`
-        @media (max-width: 900px) {
-          .calc-grid { grid-template-columns: 1fr !important; }
-          .cta-grid { grid-template-columns: 1fr !important; }
-          aside { position: static !important; }
+        /* Page shell */
+        .calc-page { font-family: 'Outfit', system-ui, sans-serif; background: var(--bg); color: var(--text-primary); width: 100%; overflow-x: hidden; }
+
+        /* Centered container — fluid padding, no overflow */
+        .c-wrap { max-width: 1280px; margin: 0 auto; padding-left: clamp(1rem, 5vw, 3rem); padding-right: clamp(1rem, 5vw, 3rem); box-sizing: border-box; }
+        .c-body { padding-top: 2.5rem; padding-bottom: 5rem; }
+
+        /* ── Hero ── */
+        .c-hero { background: #0d1117; border-bottom: 3px solid var(--verde); }
+        .c-hero .c-wrap { padding-top: clamp(5rem, 10vw, 7rem); padding-bottom: clamp(2.5rem, 5vw, 4rem); }
+        .c-hero-h1 { font-size: clamp(1.75rem, 4.5vw, 3.25rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: #fff; margin: 0 0 1.125rem; max-width: 820px; }
+        .c-hero-sub { font-size: clamp(0.9375rem, 2vw, 1.0625rem); color: #9ca3af; max-width: 600px; line-height: 1.65; margin: 0 0 1.75rem; }
+        .c-how-btn { font-family: monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; background: transparent; color: #fff; border: 1px solid #374151; padding: 9px 16px; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: border-color 0.15s, color 0.15s; }
+        .c-how-btn:hover { border-color: var(--verde); color: #6abf00; }
+
+        /* ── Two-column layout ── */
+        .c-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 2rem; align-items: start; }
+
+        /* ── Shared typography ── */
+        .c-label { font-family: monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 1.25rem; }
+        .c-hint { display: block; font-family: monospace; font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+        .c-field { margin-bottom: 14px; }
+
+        /* ── Process & role cards ── */
+        .c-process-card { border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; margin-bottom: 1.25rem; background: #fff; transition: border-color 0.2s, box-shadow 0.2s; }
+        .c-process-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .c-role-card { background: var(--bg-soft); border-radius: 8px; padding: 1.125rem; margin-bottom: 10px; }
+        .c-card-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+        .c-del-btn { background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer; padding: 2px 6px; border-radius: 4px; line-height: 1; transition: color 0.15s; }
+
+        /* ── Role inputs 2-col grid ── */
+        .c-role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        /* ── Ghost buttons ── */
+        .c-ghost-btn { width: 100%; padding: 12px; font-family: monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; background: transparent; color: #6b7280; border: 1px dashed var(--border); border-radius: 6px; cursor: pointer; transition: border-color 0.15s, color 0.15s; display: block; margin-top: 4px; }
+        .c-ghost-btn:hover { border-color: var(--verde); color: var(--verde); }
+        .c-ghost-btn--solid { border-style: solid; }
+
+        /* ── Results sidebar ── */
+        .c-results-col { position: sticky; top: 24px; }
+        .c-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+
+        /* ── Breakdown table ── */
+        .c-breakdown { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1.25rem; }
+        .c-breakdown-hdr { padding: 14px 20px; border-bottom: 1px solid var(--border); font-family: monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); }
+        .c-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .c-table thead tr { background: var(--bg-soft); }
+        .c-table th { text-align: left; padding: 10px 14px; font-family: monospace; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); font-weight: 700; white-space: nowrap; }
+        .c-table td { padding: 12px 14px; color: var(--text-secondary); border-bottom: 1px solid var(--border-light); }
+        .c-table td.td-r { font-family: monospace; font-weight: 700; color: var(--text-primary); text-align: right; }
+        .c-table td.td-empty { padding: 24px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+        /* ── Insight ── */
+        .c-insight { background: var(--bg-soft); border-left: 4px solid var(--verde); padding: 20px 24px; border-radius: 0 8px 8px 0; }
+        .c-insight-text { font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
+        .c-insight-text strong { color: var(--text-primary); }
+
+        /* ── CTA ── */
+        .c-cta { background: #0d1117; }
+        .c-cta .c-wrap { padding-top: clamp(3rem, 6vw, 5rem); padding-bottom: clamp(3rem, 6vw, 5rem); }
+        .c-cta-inner { display: grid; grid-template-columns: 1.3fr 1fr; gap: 2.5rem; align-items: center; }
+        .c-cta-h2 { font-size: clamp(1.625rem, 3.5vw, 2.5rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; color: #fff; margin: 0 0 0.875rem; }
+        .c-cta-body { font-size: 1rem; color: #9ca3af; line-height: 1.6; max-width: 480px; margin: 0; }
+        .c-cta-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+        .c-cta-btn { font-family: monospace; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; background: var(--verde); color: #fff; padding: 16px 28px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: background 0.15s, transform 0.15s; }
+        .c-cta-btn:hover { background: var(--verde-accent); transform: translateY(-2px); }
+        .c-cta-note { font-family: monospace; font-size: 11px; color: #6b7280; letter-spacing: 0.5px; margin: 0; }
+
+        /* ── Responsive ── */
+        @media (max-width: 960px) {
+          .c-grid { grid-template-columns: 1fr; }
+          .c-cta-inner { grid-template-columns: 1fr; }
+          .c-results-col { position: static; }
         }
-        @media (max-width: 768px) {
-          .calc-hero-inner { padding: 88px 24px 40px !important; }
-          .calc-cta-section { padding: 52px 24px !important; }
+        @media (max-width: 520px) {
+          .c-role-grid { grid-template-columns: 1fr; }
+          .c-stat-grid { grid-template-columns: 1fr; }
+          .c-cta-btn { width: 100%; justify-content: center; }
         }
-        @media (max-width: 600px) {
-          main { padding: 24px 16px 60px !important; }
-          .calc-hero-inner { padding: 80px 16px 32px !important; }
-          .calc-cta-section { padding: 40px 16px !important; }
-          .cta-grid > div:last-child { align-items: flex-start !important; }
-          .role-inputs-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 400px) {
-          .summary-cards { grid-template-columns: 1fr !important; }
-        }
-        /* Remove number spinners */
+
+        /* ── Misc ── */
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }
