@@ -91,7 +91,7 @@ export const AboutCTA = () => {
         </div>
 
         {/* Main content: 2 columns */}
-        <div className="about-main-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
+        <div className="about-main-grid" style={{ display: "grid", gap: "2rem" }}>
 
           {/* Left: Dark card with company info */}
           <div className="about-el" style={{

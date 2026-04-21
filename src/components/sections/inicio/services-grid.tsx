@@ -74,7 +74,6 @@ export const ServicesGrid = () => {
         {/* Bento Grid */}
         <div className="bento-grid" style={{
           display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
           gridTemplateRows: "auto auto",
           gap: "0.75rem",
         }}>

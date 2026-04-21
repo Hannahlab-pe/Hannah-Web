@@ -45,7 +45,7 @@ export const Footer = () => {
         display: "flex", justifyContent: "center", alignItems: "center",
         height: "200px", overflow: "visible",
       }}>
-        <Image src="/images/logos/hannah.png" alt="HannahLab" width={320} height={320} style={{ objectFit: "contain", marginTop: "-3rem" }} />
+        <Image src="/images/logos/hannah.png" alt="HannahLab" width={320} height={320} className="footer-logo" style={{ objectFit: "contain", marginTop: "-3rem" }} />
       </div>
 
       {/* Bottom bar */}

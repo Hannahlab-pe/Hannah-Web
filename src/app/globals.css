@@ -180,10 +180,17 @@ input:focus, select:focus, textarea:focus {
    RESPONSIVE - LANDING
    ============================ */
 
-/* Bento grid (ServicesGrid) */
+/* Bento grid (ServicesGrid) — default desktop 4 cols */
+.bento-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+.bento-card {
+  grid-column: span 2;
+}
+
 @media (max-width: 1023px) {
   .bento-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, 1fr);
   }
   .bento-card {
     grid-column: span 1 !important;
@@ -191,14 +198,17 @@ input:focus, select:focus, textarea:focus {
 }
 @media (max-width: 580px) {
   .bento-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr;
   }
 }
 
 /* About CTA 2-col main grid */
+.about-main-grid {
+  grid-template-columns: 1fr 1fr;
+}
 @media (max-width: 900px) {
   .about-main-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: 1fr;
   }
 }
 
@@ -242,5 +252,9 @@ input:focus, select:focus, textarea:focus {
 @media (max-width: 640px) {
   .section-responsive {
     padding: 2.5rem 1rem !important;
+  }
+  .footer-logo {
+    width: 160px !important;
+    height: 160px !important;
   }
 }
