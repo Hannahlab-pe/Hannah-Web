@@ -714,7 +714,8 @@ export const CalculadoraROI = () => {
 
         /* ── Results sidebar ── */
         .c-results-col { position: sticky; top: 24px; }
-        .c-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+        .c-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; min-width: 0; }
+        .c-stat-grid > * { min-width: 0; box-sizing: border-box; }
 
         /* ── Breakdown table ── */
         .c-breakdown { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 1.25rem; }
@@ -782,22 +783,25 @@ const StatCard = ({
 }) => (
   <div
     style={{
-      background: highlight ? "#4a8b00" : "#111827",
-      color: highlight ? "#fff" : "#fff",
+      background: highlight ? "var(--verde)" : "#fff",
+      color: highlight ? "#fff" : "var(--text-primary)",
       borderRadius: 8,
       padding: "18px 16px",
       position: "relative",
       overflow: "hidden",
-      borderLeft: `3px solid ${highlight ? "#6abf00" : "#4a8b00"}`,
+      border: `1px solid ${highlight ? "var(--verde)" : "var(--border)"}`,
+      borderLeft: `3px solid ${highlight ? "#6abf00" : "var(--verde)"}`,
+      minWidth: 0,
+      boxSizing: "border-box",
     }}
   >
-    <p style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", opacity: 0.7, marginBottom: 8 }}>
+    <p style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 8, color: highlight ? "rgba(255,255,255,0.75)" : "#6b7280" }}>
       {label}
     </p>
-    <p style={{ fontFamily: "monospace", fontSize: 18, fontWeight: 700, lineHeight: 1.2, wordBreak: "break-word" }}>
+    <p style={{ fontFamily: "monospace", fontSize: 18, fontWeight: 700, lineHeight: 1.2, wordBreak: "break-word", color: highlight ? "#fff" : "#111827" }}>
       {value}
     </p>
-    <p style={{ fontSize: 11, opacity: 0.65, marginTop: 5 }}>{sub}</p>
+    <p style={{ fontSize: 11, marginTop: 5, color: highlight ? "rgba(255,255,255,0.75)" : "#374151" }}>{sub}</p>
   </div>
 );
 
