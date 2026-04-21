@@ -148,6 +148,7 @@ export function crearProyecto(data: {
   descripcion?: string;
   clienteId: string;
   fechaEntrega?: string;
+  encargadosIds?: string[];
 }) {
   return apiFetch<any>('/proyectos', { method: 'POST', body: JSON.stringify(data) });
 }

@@ -20,14 +20,22 @@ function ProgressBar({ value }: { value: number }) {
 }
 
 // ── Modal crear proyecto ──────────────────────────────────────────
-function ModalCrearProyecto({ clientes, onClose, onCreado }: {
+function ModalCrearProyecto({ clientes, subadmins, onClose, onCreado }: {
   clientes: UsuarioSession[];
+  subadmins: UsuarioSession[];
   onClose: () => void;
   onCreado: () => void;
 }) {
   const [form, setForm] = useState({ nombre: "", descripcion: "", clienteId: "", fechaEntrega: "" });
+  const [encargadosIds, setEncargadosIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  function toggleEncargado(id: string) {
+    setEncargadosIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,6 +47,7 @@ function ModalCrearProyecto({ clientes, onClose, onCreado }: {
         descripcion: form.descripcion || undefined,
         clienteId: form.clienteId,
         fechaEntrega: form.fechaEntrega || undefined,
+        encargadosIds: encargadosIds.length > 0 ? encargadosIds : undefined,
       });
       onCreado();
       onClose();
@@ -92,6 +101,32 @@ function ModalCrearProyecto({ clientes, onClose, onCreado }: {
             <textarea rows={2} value={form.descripcion} onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))} style={{ ...inputStyle, resize: "vertical" as const }} />
           </div>
 
+          {/* Encargados */}
+          {subadmins.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Encargados del equipo</label>
+              <div style={{ border: "1px solid var(--border)", borderRadius: "8px", background: "var(--bg-soft)", maxHeight: "120px", overflowY: "auto", padding: "0.4rem 0" }}>
+                {subadmins.map((s) => (
+                  <label
+                    key={s.id}
+                    style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.35rem 0.75rem", cursor: "pointer", fontSize: "0.78rem", color: "var(--text-primary)", userSelect: "none" }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={encargadosIds.includes(s.id)}
+                      onChange={() => toggleEncargado(s.id)}
+                      style={{ accentColor: "var(--verde)", width: "14px", height: "14px", cursor: "pointer" }}
+                    />
+                    {s.nombre}{s.empresa ? ` · ${s.empresa}` : ""}
+                  </label>
+                ))}
+              </div>
+              {encargadosIds.length > 0 && (
+                <p style={{ fontSize: "0.7rem", color: "var(--verde)", margin: 0 }}>{encargadosIds.length} encargado{encargadosIds.length > 1 ? "s" : ""} seleccionado{encargadosIds.length > 1 ? "s" : ""}</p>
+              )}
+            </div>
+          )}
+
           {/* Fecha entrega */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
             <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Fecha de entrega</label>
@@ -114,6 +149,7 @@ function ModalCrearProyecto({ clientes, onClose, onCreado }: {
 export default function AdminProyectosPage() {
   const [proyectos, setProyectos] = useState<any[]>([]);
   const [clientes, setClientes] = useState<UsuarioSession[]>([]);
+  const [subadmins, setSubadmins] = useState<UsuarioSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modal, setModal] = useState(false);
@@ -125,6 +161,7 @@ export default function AdminProyectosPage() {
       const [ps, cs] = await Promise.all([getAdminProyectos(), getClientes()]);
       setProyectos(ps);
       setClientes(cs.filter((c: any) => c.rol === "cliente"));
+      setSubadmins(cs.filter((c: any) => c.rol === "subadmin"));
     } catch (err: any) {
       setError(err.message ?? "Error al cargar");
     } finally {
@@ -212,7 +249,7 @@ export default function AdminProyectosPage() {
         </div>
       )}
 
-      {modal && <ModalCrearProyecto clientes={clientes} onClose={() => setModal(false)} onCreado={cargar} />}
+      {modal && <ModalCrearProyecto clientes={clientes} subadmins={subadmins} onClose={() => setModal(false)} onCreado={cargar} />}
     </div>
   );
 }
