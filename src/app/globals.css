@@ -244,8 +244,8 @@ input:focus, select:focus, textarea:focus {
 /* Hero illustration: visible on all screens, smaller on mobile */
 @media (max-width: 900px) {
   .hero-illustration-col {
-    max-height: 260px;
-    overflow: hidden;
+    max-width: 320px;
+    margin: 0 auto;
   }
 }
 
