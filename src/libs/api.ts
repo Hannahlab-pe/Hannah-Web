@@ -83,6 +83,38 @@ export function getImplementacionesByProyecto(proyectoId: string) {
   return apiFetch<any[]>(`/implementaciones/proyecto/${proyectoId}`);
 }
 
+export function crearImplementacion(data: {
+  nombre: string;
+  descripcion?: string;
+  tipo?: string;
+  proyectoId: string;
+}) {
+  return apiFetch<any>('/implementaciones', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function eliminarImplementacion(id: string) {
+  return apiFetch<void>(`/implementaciones/${id}`, { method: 'DELETE' });
+}
+
+export function crearTarea(data: {
+  titulo: string;
+  descripcion?: string;
+  columna?: string;
+  prioridad?: string;
+  fechaLimite?: string;
+  implementacionId: string;
+}) {
+  return apiFetch<any>('/implementaciones/tareas', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function moverTarea(id: string, columna: string) {
+  return apiFetch<any>(`/implementaciones/tareas/${id}/mover`, { method: 'PATCH', body: JSON.stringify({ columna }) });
+}
+
+export function eliminarTarea(id: string) {
+  return apiFetch<void>(`/implementaciones/tareas/${id}`, { method: 'DELETE' });
+}
+
 // ── Facturas ─────────────────────────────────────────────────────
 
 export function getMisFacturas() {

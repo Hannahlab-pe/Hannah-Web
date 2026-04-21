@@ -143,13 +143,13 @@ export default function ProyectosPage() {
                     {proyecto.fechaEntrega ? `Entrega: ${fmt(proyecto.fechaEntrega)}` : "Sin fecha de entrega"}
                   </span>
                   <a
-                    href={`/dashboard/avances?proyecto=${proyecto.id}`}
+                    href={`/dashboard/proyectos/${proyecto.id}`}
                     style={{
                       fontSize: "0.72rem", fontWeight: 600, color: "var(--verde)",
                       textDecoration: "none", fontFamily: "'Outfit', sans-serif",
                     }}
                   >
-                    Ver avances →
+                    Ver kanban →
                   </a>
                 </div>
               </div>

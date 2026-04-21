@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { getAdminProyectos, getClientes, crearProyecto, type UsuarioSession } from "@/libs/api";
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -154,6 +155,7 @@ export default function AdminProyectosPage() {
   const [error, setError] = useState("");
   const [modal, setModal] = useState(false);
   const [search, setSearch] = useState("");
+  const router = useRouter();
 
   async function cargar() {
     setLoading(true);
@@ -219,7 +221,13 @@ export default function AdminProyectosPage() {
           {filtrados.map((p) => {
             const estado = ESTADO_LABELS[p.estado] ?? { label: p.estado, color: "var(--text-muted)" };
             return (
-              <div key={p.id} style={{ padding: "1.25rem 1.5rem", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <div
+                key={p.id}
+                onClick={() => router.push(`/dashboard/admin/proyectos/${p.id}`)}
+                style={{ padding: "1.25rem 1.5rem", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px", display: "flex", flexDirection: "column", gap: "0.75rem", cursor: "pointer", transition: "box-shadow 0.2s, border-color 0.2s" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.07)"; (e.currentTarget as HTMLDivElement).style.borderColor = "var(--verde)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)"; }}
+              >
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-primary)", margin: 0 }}>{p.nombre}</p>
