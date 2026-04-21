@@ -88,7 +88,7 @@ export const HeroNew = () => {
         </div>
 
         {/* RIGHT */}
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div className="hero-illustration-col" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
           <div style={{ width: "100%", maxWidth: "500px" }}>
             <HeroIllustration />
           </div>

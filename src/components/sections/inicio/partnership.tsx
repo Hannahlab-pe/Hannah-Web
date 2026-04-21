@@ -33,7 +33,7 @@ export const Partnership = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} id="partnership" style={{
+    <section ref={sectionRef} id="partnership" className="section-responsive" style={{
       background: "linear-gradient(135deg, #0a1a00 0%, #122200 50%, #0d1d00 100%)",
       minHeight: "100vh", display: "flex", alignItems: "center", padding: "3rem 1.5rem",
       position: "relative", overflow: "hidden",

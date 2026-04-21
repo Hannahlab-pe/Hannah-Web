@@ -137,6 +137,7 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--border);
 /*  */}
 
+
 /* ============================
    MOBILE MENU
    ============================ */
@@ -173,4 +174,73 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--verde) !important;
   box-shadow: 0 0 0 3px rgba(74, 139, 0, 0.08) !important;
   outline: none;
+}
+
+/* ============================
+   RESPONSIVE - LANDING
+   ============================ */
+
+/* Bento grid (ServicesGrid) */
+@media (max-width: 1023px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .bento-card {
+    grid-column: span 1 !important;
+  }
+}
+@media (max-width: 580px) {
+  .bento-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* About CTA 2-col main grid */
+@media (max-width: 900px) {
+  .about-main-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* About stats row */
+@media (max-width: 500px) {
+  .about-stats-row {
+    gap: 1.5rem !important;
+  }
+}
+
+/* Partnership logos */
+@media (max-width: 600px) {
+  .partner-logos {
+    flex-wrap: wrap !important;
+    gap: 1.25rem !important;
+  }
+  .partner-logos img {
+    max-width: 110px !important;
+    height: auto !important;
+  }
+}
+
+/* Contacts form grids */
+@media (max-width: 500px) {
+  .form-services-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .form-row-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Hero: hide illustration on small screens */
+@media (max-width: 900px) {
+  .hero-illustration-col {
+    display: none !important;
+  }
+}
+
+/* General section padding on mobile */
+@media (max-width: 640px) {
+  .section-responsive {
+    padding: 2.5rem 1rem !important;
+  }
 }

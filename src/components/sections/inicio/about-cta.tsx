@@ -74,7 +74,7 @@ export const AboutCTA = () => {
           </div>
 
           {/* Stats row */}
-          <div className="about-el" style={{ opacity: 0, display: "flex", gap: "2.5rem" }}>
+          <div className="about-el about-stats-row" style={{ opacity: 0, display: "flex", gap: "2.5rem", flexWrap: "wrap" }}>
             {[
               { value: "", suffix: "+AI", label: "Soluciones inteligentes", noCounter: true },
               { value: "", suffix: "24/7", label: "Soporte Tecnico", noCounter: true },
@@ -91,7 +91,7 @@ export const AboutCTA = () => {
         </div>
 
         {/* Main content: 2 columns */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }} className="lg:!grid-cols-2">
+        <div className="about-main-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
 
           {/* Left: Dark card with company info */}
           <div className="about-el" style={{

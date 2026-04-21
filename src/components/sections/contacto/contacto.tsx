@@ -239,7 +239,7 @@ export default function Contacto() {
                     <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "1rem" }}>
                       Que servicio te interesa?
                     </h3>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                    <div className="form-services-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
                       {services.map((s) => (
                         <button
                           key={s.id}
@@ -290,7 +290,7 @@ export default function Contacto() {
                         <input type="email" placeholder="tu@email.com" style={{ ...inputStyle, borderColor: errors.email ? "#ef4444" : "var(--border)" }} value={formData.email} onChange={(e) => update("email", e.target.value)} />
                         {errors.email && <p style={{ fontSize: "0.7rem", color: "#ef4444", marginTop: "0.25rem" }}>{errors.email}</p>}
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                      <div className="form-row-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
                         <div>
                           <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.4rem", display: "block" }}>Telefono (opcional)</label>
                           <input type="tel" placeholder="984 323 201" style={inputStyle} value={formData.telefono} onChange={(e) => update("telefono", e.target.value)} />
