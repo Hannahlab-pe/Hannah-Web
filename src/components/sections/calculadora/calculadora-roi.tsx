@@ -351,7 +351,7 @@ export const CalculadoraROI = () => {
 
         {/* ─── Hero ───────────────────────────────────────────────────── */}
         <section style={{ background: "#111827", borderBottom: "3px solid #4a8b00" }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "120px 40px 64px" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "120px 40px 64px" }} className="calc-hero-inner">
             <p style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", color: "#6abf00", marginBottom: 14 }}>
               CALCULADORA ROI · AUTOMATIZACIÓN
             </p>
@@ -465,7 +465,7 @@ export const CalculadoraROI = () => {
                         />
                       </div>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }} className="role-inputs-grid">
                         <div>
                           <label style={labelStyle}>Cantidad</label>
                           <input
@@ -551,6 +551,7 @@ export const CalculadoraROI = () => {
               <div
                 id="summary-grid"
                 style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}
+                className="summary-cards"
               >
                 <StatCard label="Costo mensual oculto" value={fmtSoles(totalMonthly)} sub="por mes" />
                 <StatCard label="Costo anual perdido" value={fmtSoles(totalYearly)} sub="al año" />
@@ -614,7 +615,7 @@ export const CalculadoraROI = () => {
         </main>
 
         {/* ─── CTA ──────────────────────────────────────────────────────── */}
-        <section style={{ background: "#111827", padding: "80px 40px" }}>
+        <section style={{ background: "#111827", padding: "80px 40px" }} className="calc-cta-section">
           <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 40, alignItems: "center" }} className="cta-grid">
             <div>
               <p style={{ fontFamily: "monospace", fontSize: 11, letterSpacing: "1.5px", textTransform: "uppercase", color: "#4a8b00", marginBottom: 14 }}>
@@ -756,10 +757,19 @@ export const CalculadoraROI = () => {
           .cta-grid { grid-template-columns: 1fr !important; }
           aside { position: static !important; }
         }
+        @media (max-width: 768px) {
+          .calc-hero-inner { padding: 88px 24px 40px !important; }
+          .calc-cta-section { padding: 52px 24px !important; }
+        }
         @media (max-width: 600px) {
           main { padding: 24px 16px 60px !important; }
-          section[style*="72px"] { padding: 48px 20px 40px !important; }
+          .calc-hero-inner { padding: 80px 16px 32px !important; }
+          .calc-cta-section { padding: 40px 16px !important; }
           .cta-grid > div:last-child { align-items: flex-start !important; }
+          .role-inputs-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 400px) {
+          .summary-cards { grid-template-columns: 1fr !important; }
         }
         /* Remove number spinners */
         input[type=number]::-webkit-inner-spin-button,
