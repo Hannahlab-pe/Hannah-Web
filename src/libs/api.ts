@@ -34,7 +34,7 @@ export interface UsuarioSession {
   id: string;
   nombre: string;
   email: string;
-  rol: 'admin' | 'cliente';
+  rol: 'admin' | 'subadmin' | 'cliente';
   empresa?: string;
   telefono?: string;
 }
@@ -71,6 +71,10 @@ export function getUsuarioGuardado(): UsuarioSession | null {
 
 export function getMisProyectos() {
   return apiFetch<any[]>('/proyectos/mis-proyectos');
+}
+
+export function getProyectosComoEncargado() {
+  return apiFetch<any[]>('/proyectos/mis-encargados');
 }
 
 export function getProyecto(id: string) {

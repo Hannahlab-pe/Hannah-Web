@@ -14,6 +14,30 @@ const Icon = ({ d }: { d: string }) => (
 );
 
 // ── Menú por rol ─────────────────────────────────────────────────
+const menuSubadmin = [
+  {
+    label: "General",
+    items: [
+      { label: "Inicio", href: "/dashboard", icon: <Icon d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /> },
+      { label: "Mis proyectos", href: "/dashboard/admin/proyectos", icon: <Icon d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /> },
+    ],
+  },
+  {
+    label: "Gestión",
+    items: [
+      { label: "Tickets", href: "/dashboard/admin/tickets", icon: <Icon d="M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" /> },
+      { label: "Reuniones", href: "/dashboard/admin/reuniones", icon: <Icon d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /> },
+      { label: "Documentos", href: "/dashboard/admin/documentos", icon: <Icon d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /> },
+    ],
+  },
+  {
+    label: "Cuenta",
+    items: [
+      { label: "Perfil", href: "/dashboard/perfil", icon: <Icon d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /> },
+    ],
+  },
+];
+
 const menuAdmin = [
   {
     label: "General",
@@ -76,7 +100,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, []);
 
   const isAdmin = usuario?.rol === "admin";
-  const menuSections = isAdmin ? menuAdmin : menuCliente;
+  const isSubadmin = usuario?.rol === "subadmin";
+  const menuSections = isAdmin ? menuAdmin : isSubadmin ? menuSubadmin : menuCliente;
   const inicial = usuario?.nombre?.charAt(0).toUpperCase() ?? "U";
 
   function handleLogout() {
@@ -105,9 +130,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               Hannah<span style={{ color: "var(--verde)" }}>Lab</span>
             </span>
           </Link>
-          {isAdmin && (
+          {(isAdmin || isSubadmin) && (
             <div style={{ marginTop: "0.5rem", display: "inline-flex", alignItems: "center", gap: "0.3rem", background: "rgba(74,139,0,0.1)", border: "1px solid var(--verde)", borderRadius: "4px", padding: "0.15rem 0.5rem" }}>
-              <span style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--verde)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Admin</span>
+              <span style={{ fontSize: "0.6rem", fontWeight: 700, color: "var(--verde)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{isAdmin ? "Admin" : "Subadmin"}</span>
             </div>
           )}
         </div>

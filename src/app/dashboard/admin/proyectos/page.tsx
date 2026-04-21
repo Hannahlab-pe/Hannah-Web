@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getAdminProyectos, getClientes, crearProyecto, type UsuarioSession } from "@/libs/api";
+import { getAdminProyectos, getProyectosComoEncargado, getClientes, crearProyecto, getUsuarioGuardado, type UsuarioSession } from "@/libs/api";
 
 // ── Helpers ──────────────────────────────────────────────────────
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
@@ -157,13 +157,21 @@ export default function AdminProyectosPage() {
   const [search, setSearch] = useState("");
   const router = useRouter();
 
+  const usuario = getUsuarioGuardado();
+  const isAdmin = usuario?.rol === "admin";
+
   async function cargar() {
     setLoading(true);
     try {
-      const [ps, cs] = await Promise.all([getAdminProyectos(), getClientes()]);
-      setProyectos(ps);
-      setClientes(cs.filter((c: any) => c.rol === "cliente"));
-      setSubadmins(cs.filter((c: any) => c.rol === "subadmin"));
+      if (isAdmin) {
+        const [ps, cs] = await Promise.all([getAdminProyectos(), getClientes()]);
+        setProyectos(ps);
+        setClientes(cs.filter((c: any) => c.rol === "cliente"));
+        setSubadmins(cs.filter((c: any) => c.rol === "subadmin"));
+      } else {
+        const ps = await getProyectosComoEncargado();
+        setProyectos(ps);
+      }
     } catch (err: any) {
       setError(err.message ?? "Error al cargar");
     } finally {
@@ -183,19 +191,23 @@ export default function AdminProyectosPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
         <div>
-          <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>Proyectos</h1>
+          <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>
+            {isAdmin ? "Proyectos" : "Mis proyectos asignados"}
+          </h1>
           <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>
-            {proyectos.length} proyecto{proyectos.length !== 1 ? "s" : ""} en total
+            {proyectos.length} proyecto{proyectos.length !== 1 ? "s" : ""}{isAdmin ? " en total" : " asignados a ti"}
           </p>
         </div>
-        <button onClick={() => setModal(true)} style={{
-          display: "flex", alignItems: "center", gap: "0.5rem",
-          padding: "0.55rem 1rem", borderRadius: "10px", fontSize: "0.8rem", fontWeight: 600,
-          background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer",
-        }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "15px", height: "15px" }}><path d="M12 4.5v15m7.5-7.5h-15" strokeLinecap="round" /></svg>
-          Nuevo proyecto
-        </button>
+        {isAdmin && (
+          <button onClick={() => setModal(true)} style={{
+            display: "flex", alignItems: "center", gap: "0.5rem",
+            padding: "0.55rem 1rem", borderRadius: "10px", fontSize: "0.8rem", fontWeight: 600,
+            background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer",
+          }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "15px", height: "15px" }}><path d="M12 4.5v15m7.5-7.5h-15" strokeLinecap="round" /></svg>
+            Nuevo proyecto
+          </button>
+        )}
       </div>
 
       {/* Buscador */}
@@ -214,7 +226,7 @@ export default function AdminProyectosPage() {
         <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", fontSize: "0.85rem" }}>Cargando proyectos...</div>
       ) : filtrados.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", fontSize: "0.85rem" }}>
-          {search ? "Sin resultados." : "Aún no hay proyectos. Crea el primero."}
+          {search ? "Sin resultados." : isAdmin ? "Aún no hay proyectos. Crea el primero." : "Aún no tienes proyectos asignados."}
         </div>
       ) : (
         <div style={{ display: "grid", gap: "0.75rem" }}>
@@ -257,7 +269,7 @@ export default function AdminProyectosPage() {
         </div>
       )}
 
-      {modal && <ModalCrearProyecto clientes={clientes} subadmins={subadmins} onClose={() => setModal(false)} onCreado={cargar} />}
+      {isAdmin && modal && <ModalCrearProyecto clientes={clientes} subadmins={subadmins} onClose={() => setModal(false)} onCreado={cargar} />}
     </div>
   );
 }
