@@ -67,7 +67,7 @@ function ModalCrearProyecto({ clientes, subadmins, onClose, onCreado }: {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={{ background: "var(--bg)", borderRadius: "16px", padding: "2rem", width: "100%", maxWidth: "480px", border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      <div style={{ background: "var(--bg)", borderRadius: "16px", padding: "2rem 2.5rem", width: "100%", maxWidth: "640px", border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "1rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <h2 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>Nuevo proyecto</h2>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.2rem" }}>✕</button>
@@ -78,21 +78,21 @@ function ModalCrearProyecto({ clientes, subadmins, onClose, onCreado }: {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-          {/* Cliente */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Cliente <span style={{ color: "#ef4444" }}>*</span></label>
-            <select required value={form.clienteId} onChange={(e) => setForm((f) => ({ ...f, clienteId: e.target.value }))} style={inputStyle}>
-              <option value="">Seleccionar cliente...</option>
-              {clientes.map((c) => (
-                <option key={c.id} value={c.id}>{c.nombre} {c.empresa ? `· ${c.empresa}` : ""}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Nombre */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Nombre del proyecto <span style={{ color: "#ef4444" }}>*</span></label>
-            <input required type="text" value={form.nombre} onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))} style={inputStyle} />
+          {/* Fila 1: Cliente + Nombre */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Cliente <span style={{ color: "#ef4444" }}>*</span></label>
+              <select required value={form.clienteId} onChange={(e) => setForm((f) => ({ ...f, clienteId: e.target.value }))} style={inputStyle}>
+                <option value="">Seleccionar cliente...</option>
+                {clientes.map((c) => (
+                  <option key={c.id} value={c.id}>{c.nombre} {c.empresa ? `· ${c.empresa}` : ""}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Nombre del proyecto <span style={{ color: "#ef4444" }}>*</span></label>
+              <input required type="text" placeholder="Ej: Web corporativa..." value={form.nombre} onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))} style={inputStyle} />
+            </div>
           </div>
 
           {/* Descripción */}
@@ -105,7 +105,7 @@ function ModalCrearProyecto({ clientes, subadmins, onClose, onCreado }: {
           {subadmins.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
               <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Encargados del equipo</label>
-              <div style={{ border: "1px solid var(--border)", borderRadius: "8px", background: "var(--bg-soft)", maxHeight: "120px", overflowY: "auto", padding: "0.4rem 0" }}>
+              <div style={{ border: "1px solid var(--border)", borderRadius: "8px", background: "var(--bg-soft)", maxHeight: "110px", overflowY: "auto", padding: "0.4rem 0", display: "grid", gridTemplateColumns: "1fr 1fr" }}>
                 {subadmins.map((s) => (
                   <label
                     key={s.id}
