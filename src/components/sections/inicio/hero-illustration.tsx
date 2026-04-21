@@ -196,7 +196,7 @@ export const HeroIllustration = () => {
 
  
 
-      {/* Small processing indicators around center */}
+      {/* Small processing indicators around center */}v
       <g className="card-icon">
         {/* Top indicator: AI sparkle */}
         <circle cx="260" cy="132" r="14" fill={CARD} stroke={BORDER} strokeWidth="1.2" />
