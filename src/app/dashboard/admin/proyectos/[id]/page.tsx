@@ -27,8 +27,11 @@ import {
   crearImplementacion,
   eliminarImplementacion,
   crearTarea,
+  actualizarTarea,
   moverTarea,
   eliminarTarea,
+  actualizarProyecto,
+  getClientes,
 } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
 
@@ -83,10 +86,12 @@ function DroppableColumn({ id, children, style }: { id: string; children: React.
 function TareaCard({
   tarea,
   onEliminar,
+  onEditar,
   isDragOverlay = false,
 }: {
   tarea: any;
   onEliminar?: (id: string) => void;
+  onEditar?: (tarea: any) => void;
   isDragOverlay?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -111,25 +116,44 @@ function TareaCard({
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      {/* Fila: prioridad + acciones */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <span
-          style={{
-            fontSize: "0.62rem", fontWeight: 700, padding: "0.15rem 0.5rem",
-            borderRadius: "999px", background: `${pri.color}18`, color: pri.color,
-            textTransform: "uppercase", letterSpacing: "0.04em",
-          }}
-        >
+        <span style={{
+          fontSize: "0.62rem", fontWeight: 700, padding: "0.15rem 0.5rem",
+          borderRadius: "999px", background: `${pri.color}18`, color: pri.color,
+          textTransform: "uppercase", letterSpacing: "0.04em",
+        }}>
           {pri.label}
         </span>
-        {!isDragOverlay && onEliminar && (
-          <button
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => { e.stopPropagation(); onEliminar(tarea.id); }}
-            title="Eliminar tarea"
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "0.75rem", lineHeight: 1, padding: "0 2px" }}
-          >
-            ✕
-          </button>
+        {!isDragOverlay && (
+          <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+            {onEditar && (
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); onEditar(tarea); }}
+                title="Editar tarea"
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", lineHeight: 1, padding: "0 3px", display: "flex" }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "var(--verde)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "11px", height: "11px" }}>
+                  <path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
+            {onEliminar && (
+              <button
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); onEliminar(tarea.id); }}
+                title="Eliminar tarea"
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "0.75rem", lineHeight: 1, padding: "0 2px" }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "#ef4444"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -141,6 +165,21 @@ function TareaCard({
         <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.4 }}>
           {tarea.descripcion}
         </p>
+      )}
+
+      {/* Responsables */}
+      {tarea.responsables?.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", flexWrap: "wrap" }}>
+          {tarea.responsables.map((r: any) => (
+            <span key={r.id} style={{
+              fontSize: "0.6rem", fontWeight: 600, padding: "0.1rem 0.45rem",
+              borderRadius: "999px", background: "rgba(74,139,0,0.1)",
+              color: "var(--verde)", border: "1px solid rgba(74,139,0,0.2)",
+            }}>
+              {r.nombre.split(" ")[0]}
+            </span>
+          ))}
+        </div>
       )}
 
       {tarea.fechaLimite && (
@@ -222,6 +261,53 @@ function AppModal({
   );
 }
 
+// ── Diálogo de confirmación ───────────────────────────────────────
+function ConfirmDialog({
+  open, onClose, onConfirm, title, message, danger = true,
+}: {
+  open: boolean; onClose: () => void; onConfirm: () => void;
+  title: string; message: string; danger?: boolean;
+}) {
+  return (
+    <Transition appear show={open} as={Fragment}>
+      <Dialog as="div" style={{ position: "relative", zIndex: 70 }} onClose={onClose}>
+        <Transition.Child as={Fragment} enter="ease-out duration-150" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-100" leaveFrom="opacity-100" leaveTo="opacity-0">
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+        </Transition.Child>
+        <div style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+          <Transition.Child as={Fragment} enter="ease-out duration-150" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-100" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
+            <Dialog.Panel style={{ width: "100%", maxWidth: "380px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px", padding: "1.5rem", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: "0.85rem", marginBottom: "1.1rem" }}>
+                {danger && (
+                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(239,68,68,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" style={{ width: "18px", height: "18px" }}>
+                      <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                )}
+                <div>
+                  <Dialog.Title style={{ fontSize: "0.92rem", fontWeight: 700, color: "var(--text-primary)", margin: "0 0 0.3rem" }}>
+                    {title}
+                  </Dialog.Title>
+                  <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>{message}</p>
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: "0.65rem", justifyContent: "flex-end" }}>
+                <button onClick={onClose} style={{ padding: "0.5rem 1rem", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)", fontWeight: 500 }}>
+                  Cancelar
+                </button>
+                <button onClick={() => { onConfirm(); onClose(); }} style={{ padding: "0.5rem 1rem", borderRadius: "8px", border: "none", background: danger ? "#ef4444" : "var(--verde)", color: "#fff", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600 }}>
+                  Eliminar
+                </button>
+              </div>
+            </Dialog.Panel>
+          </Transition.Child>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+}
+
 // ── Página principal ─────────────────────────────────────────────
 export default function KanbanAdminPage() {
   const { id } = useParams<{ id: string }>();
@@ -240,8 +326,28 @@ export default function KanbanAdminPage() {
   // ── Modal nueva tarea ──
   const [modalTarea, setModalTarea] = useState(false);
   const [tareaCtx, setTareaCtx] = useState<{ implId: string; colKey: string } | null>(null);
-  const [tareaFrm, setTareaFrm] = useState({ titulo: "", descripcion: "", prioridad: "media", fechaLimite: "" });
+  const [tareaFrm, setTareaFrm] = useState({ titulo: "", descripcion: "", prioridad: "media", fechaLimite: "", responsablesIds: [] as string[] });
   const [tareaLoading, setTareaLoading] = useState(false);
+
+  // ── Modal editar tarea ──
+  const [modalEditTarea, setModalEditTarea] = useState(false);
+  const [editTareaData, setEditTareaData] = useState<any>(null);
+  const [editTareaFrm, setEditTareaFrm] = useState({ titulo: "", descripcion: "", prioridad: "media", fechaLimite: "", responsablesIds: [] as string[] });
+  const [editTareaLoading, setEditTareaLoading] = useState(false);
+
+  // ── Confirm dialog ──
+  const [confirmState, setConfirmState] = useState<{ open: boolean; title: string; message: string; onConfirm: () => void }>({
+    open: false, title: "", message: "", onConfirm: () => {},
+  });
+  function openConfirm(title: string, message: string, onConfirm: () => void) {
+    setConfirmState({ open: true, title, message, onConfirm });
+  }
+
+  // ── Modal editar proyecto ──
+  const [modalEditProyecto, setModalEditProyecto] = useState(false);
+  const [editProyFrm, setEditProyFrm] = useState({ nombre: "", descripcion: "", estado: "", fechaEntrega: "", encargadosIds: [] as string[] });
+  const [subadmins, setSubadmins] = useState<any[]>([]);
+  const [editProyLoading, setEditProyLoading] = useState(false);
 
   // ── Fases colapsadas ──
   const [collapsedFases, setCollapsedFases] = useState<Set<string>>(new Set());
@@ -361,15 +467,18 @@ export default function KanbanAdminPage() {
     }
   }
 
-  async function handleEliminarFase(implId: string) {
-    if (!confirm("¿Eliminar esta fase y todas sus tareas?")) return;
-    try { await eliminarImplementacion(implId); cargar(); } catch {}
+  function handleEliminarFase(implId: string) {
+    openConfirm(
+      "Eliminar fase",
+      "Se eliminarán esta fase y todas sus tareas. Esta acción no se puede deshacer.",
+      async () => { try { await eliminarImplementacion(implId); cargar(); } catch {} }
+    );
   }
 
   // ── Handlers tareas ──
   function abrirModalTarea(implId: string, colKey: string) {
     setTareaCtx({ implId, colKey });
-    setTareaFrm({ titulo: "", descripcion: "", prioridad: "media", fechaLimite: "" });
+    setTareaFrm({ titulo: "", descripcion: "", prioridad: "media", fechaLimite: "", responsablesIds: [] });
     setModalTarea(true);
   }
 
@@ -385,6 +494,7 @@ export default function KanbanAdminPage() {
         columna: tareaCtx.colKey,
         fechaLimite: tareaFrm.fechaLimite || undefined,
         implementacionId: tareaCtx.implId,
+        responsablesIds: tareaFrm.responsablesIds.length > 0 ? tareaFrm.responsablesIds : undefined,
       });
       setModalTarea(false);
       cargar();
@@ -393,17 +503,92 @@ export default function KanbanAdminPage() {
     }
   }
 
-  async function handleEliminarTarea(tareaId: string) {
-    if (!confirm("¿Eliminar esta tarea?")) return;
+  function handleEliminarTarea(tareaId: string) {
+    openConfirm(
+      "Eliminar tarea",
+      "¿Seguro que quieres eliminar esta tarea? Esta acción no se puede deshacer.",
+      async () => {
+        try {
+          await eliminarTarea(tareaId);
+          setImplementaciones((prev) =>
+            prev.map((impl) => ({
+              ...impl,
+              tareas: impl.tareas?.filter((t: any) => t.id !== tareaId),
+            }))
+          );
+        } catch {}
+      }
+    );
+  }
+
+  function abrirEditTarea(tarea: any) {
+    setEditTareaData(tarea);
+    setEditTareaFrm({
+      titulo: tarea.titulo ?? "",
+      descripcion: tarea.descripcion ?? "",
+      prioridad: tarea.prioridad ?? "media",
+      fechaLimite: tarea.fechaLimite ? tarea.fechaLimite.split("T")[0] : "",
+      responsablesIds: tarea.responsables?.map((r: any) => r.id) ?? [],
+    });
+    setModalEditTarea(true);
+  }
+
+  async function handleEditarTarea(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editTareaData) return;
+    setEditTareaLoading(true);
     try {
-      await eliminarTarea(tareaId);
+      const updated = await actualizarTarea(editTareaData.id, {
+        titulo: editTareaFrm.titulo,
+        descripcion: editTareaFrm.descripcion || undefined,
+        prioridad: editTareaFrm.prioridad,
+        fechaLimite: editTareaFrm.fechaLimite || undefined,
+        responsablesIds: editTareaFrm.responsablesIds,
+      });
       setImplementaciones((prev) =>
         prev.map((impl) => ({
           ...impl,
-          tareas: impl.tareas?.filter((t: any) => t.id !== tareaId),
+          tareas: impl.tareas?.map((t: any) => t.id === editTareaData.id ? { ...t, ...updated } : t),
         }))
       );
-    } catch {}
+      setModalEditTarea(false);
+    } catch (err: any) {
+      openConfirm("Error", err.message ?? "Error al actualizar tarea", () => {});
+    } finally {
+      setEditTareaLoading(false);
+    }
+  }
+
+  function abrirEditProyecto() {
+    setEditProyFrm({
+      nombre: proyecto?.nombre ?? "",
+      descripcion: proyecto?.descripcion ?? "",
+      estado: proyecto?.estado ?? "en_progreso",
+      fechaEntrega: proyecto?.fechaEntrega ? proyecto.fechaEntrega.split("T")[0] : "",
+      encargadosIds: proyecto?.encargados?.map((e: any) => e.id) ?? [],
+    });
+    getClientes().then((all: any[]) => setSubadmins(all.filter((u) => u.rol === "subadmin"))).catch(() => {});
+    setModalEditProyecto(true);
+  }
+
+  async function handleEditarProyecto(e: React.FormEvent) {
+    e.preventDefault();
+    setEditProyLoading(true);
+    try {
+      await actualizarProyecto(id, {
+        nombre: editProyFrm.nombre,
+        descripcion: editProyFrm.descripcion || undefined,
+        estado: editProyFrm.estado,
+        fechaEntrega: editProyFrm.fechaEntrega || undefined,
+        encargadosIds: editProyFrm.encargadosIds,
+      });
+      setModalEditProyecto(false);
+      cargar();
+    } catch (err: any) {
+      openConfirm("Error", err.message ?? "Error al actualizar proyecto", () => {});
+    } finally {
+      setEditProyLoading(false);
+    }
   }
 
   const inputS: React.CSSProperties = {
@@ -462,7 +647,16 @@ export default function KanbanAdminPage() {
               </span>
             )}
 
-            <div style={{ marginLeft: "auto" }}>
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <button
+                onClick={abrirEditProyecto}
+                style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 0.9rem", borderRadius: "10px", fontSize: "0.78rem", fontWeight: 600, background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", transition: "all 0.15s" }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--verde)"; e.currentTarget.style.color = "var(--verde)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "13px", height: "13px" }}><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                Editar
+              </button>
               <button
                 onClick={() => setModalFase(true)}
                 style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", borderRadius: "10px", fontSize: "0.78rem", fontWeight: 600, background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer", transition: "opacity 0.15s" }}
@@ -624,7 +818,7 @@ export default function KanbanAdminPage() {
                         {/* Tarjetas */}
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                           {tareas.map((tarea: any) => (
-                            <TareaCard key={tarea.id} tarea={tarea} onEliminar={handleEliminarTarea} />
+                            <TareaCard key={tarea.id} tarea={tarea} onEliminar={handleEliminarTarea} onEditar={abrirEditTarea} />
                           ))}
                           {tareas.length === 0 && (
                             <div style={{ padding: "1rem 0.5rem", textAlign: "center", borderRadius: "8px", border: "1px dashed var(--border)" }}>
@@ -745,14 +939,38 @@ export default function KanbanAdminPage() {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
               <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Fecha límite</label>
-              <input
-                type="date"
-                value={tareaFrm.fechaLimite}
-                onChange={(e) => setTareaFrm((p) => ({ ...p, fechaLimite: e.target.value }))}
-                style={inputS}
-              />
+              <input type="date" value={tareaFrm.fechaLimite} onChange={(e) => setTareaFrm((p) => ({ ...p, fechaLimite: e.target.value }))} style={inputS} />
             </div>
           </div>
+          {/* Responsables */}
+          {proyecto?.encargados?.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Responsables</label>
+              <div style={{ border: "1px solid var(--border)", borderRadius: "8px", background: "var(--bg-soft)", padding: "0.4rem 0", display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+                {proyecto.encargados.map((enc: any) => (
+                  <label key={enc.id} style={{ display: "flex", alignItems: "center", gap: "0.55rem", padding: "0.35rem 0.75rem", cursor: "pointer", fontSize: "0.78rem", color: "var(--text-primary)", userSelect: "none" }}>
+                    <input
+                      type="checkbox"
+                      checked={tareaFrm.responsablesIds.includes(enc.id)}
+                      onChange={() => setTareaFrm((p) => ({
+                        ...p,
+                        responsablesIds: p.responsablesIds.includes(enc.id)
+                          ? p.responsablesIds.filter((x) => x !== enc.id)
+                          : [...p.responsablesIds, enc.id],
+                      }))}
+                      style={{ accentColor: "var(--verde)", width: "14px", height: "14px" }}
+                    />
+                    {enc.nombre}
+                  </label>
+                ))}
+              </div>
+              {tareaFrm.responsablesIds.length > 0 && (
+                <p style={{ fontSize: "0.7rem", color: "var(--verde)", margin: 0 }}>
+                  {tareaFrm.responsablesIds.length} responsable{tareaFrm.responsablesIds.length > 1 ? "s" : ""} asignado{tareaFrm.responsablesIds.length > 1 ? "s" : ""}
+                </p>
+              )}
+            </div>
+          )}
           <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.25rem" }}>
             <button type="button" onClick={() => setModalTarea(false)} style={{ flex: 1, padding: "0.55rem", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)" }}>
               Cancelar
@@ -763,6 +981,134 @@ export default function KanbanAdminPage() {
           </div>
         </form>
       </AppModal>
+      {/* ── Modal editar tarea ── */}
+      <AppModal open={modalEditTarea} onClose={() => setModalEditTarea(false)} title="Editar tarea">
+        <form onSubmit={handleEditarTarea} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Título <span style={{ color: "#ef4444" }}>*</span></label>
+            <input required value={editTareaFrm.titulo} onChange={(e) => setEditTareaFrm((p) => ({ ...p, titulo: e.target.value }))} style={inputS} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Descripción</label>
+            <textarea value={editTareaFrm.descripcion} onChange={(e) => setEditTareaFrm((p) => ({ ...p, descripcion: e.target.value }))} rows={2} style={{ ...inputS, resize: "vertical" }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Prioridad</label>
+              <select value={editTareaFrm.prioridad} onChange={(e) => setEditTareaFrm((p) => ({ ...p, prioridad: e.target.value }))} style={inputS}>
+                {PRIORIDADES.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+              </select>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Fecha límite</label>
+              <input type="date" value={editTareaFrm.fechaLimite} onChange={(e) => setEditTareaFrm((p) => ({ ...p, fechaLimite: e.target.value }))} style={inputS} />
+            </div>
+          </div>
+          {/* Responsables — solo encargados del proyecto */}
+          {proyecto?.encargados?.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Responsables</label>
+              <div style={{ border: "1px solid var(--border)", borderRadius: "8px", background: "var(--bg-soft)", padding: "0.4rem 0", display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+                {proyecto.encargados.map((enc: any) => (
+                  <label key={enc.id} style={{ display: "flex", alignItems: "center", gap: "0.55rem", padding: "0.35rem 0.75rem", cursor: "pointer", fontSize: "0.78rem", color: "var(--text-primary)", userSelect: "none" }}>
+                    <input
+                      type="checkbox"
+                      checked={editTareaFrm.responsablesIds.includes(enc.id)}
+                      onChange={() => setEditTareaFrm((p) => ({
+                        ...p,
+                        responsablesIds: p.responsablesIds.includes(enc.id)
+                          ? p.responsablesIds.filter((x) => x !== enc.id)
+                          : [...p.responsablesIds, enc.id],
+                      }))}
+                      style={{ accentColor: "var(--verde)", width: "14px", height: "14px" }}
+                    />
+                    {enc.nombre}
+                  </label>
+                ))}
+              </div>
+              {editTareaFrm.responsablesIds.length > 0 && (
+                <p style={{ fontSize: "0.7rem", color: "var(--verde)", margin: 0 }}>
+                  {editTareaFrm.responsablesIds.length} responsable{editTareaFrm.responsablesIds.length > 1 ? "s" : ""} asignado{editTareaFrm.responsablesIds.length > 1 ? "s" : ""}
+                </p>
+              )}
+            </div>
+          )}
+          <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.25rem" }}>
+            <button type="button" onClick={() => setModalEditTarea(false)} style={{ flex: 1, padding: "0.55rem", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)" }}>Cancelar</button>
+            <button type="submit" disabled={editTareaLoading} style={{ flex: 2, padding: "0.55rem", borderRadius: "8px", border: "none", background: "var(--verde)", color: "#fff", fontWeight: 600, fontSize: "0.8rem", cursor: editTareaLoading ? "wait" : "pointer" }}>
+              {editTareaLoading ? "Guardando..." : "Guardar cambios"}
+            </button>
+          </div>
+        </form>
+      </AppModal>
+
+      {/* ── Modal editar proyecto ── */}
+      <AppModal open={modalEditProyecto} onClose={() => setModalEditProyecto(false)} title="Editar proyecto">
+        <form onSubmit={handleEditarProyecto} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Nombre <span style={{ color: "#ef4444" }}>*</span></label>
+            <input required value={editProyFrm.nombre} onChange={(e) => setEditProyFrm((p) => ({ ...p, nombre: e.target.value }))} style={inputS} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Descripción</label>
+            <textarea value={editProyFrm.descripcion} onChange={(e) => setEditProyFrm((p) => ({ ...p, descripcion: e.target.value }))} rows={2} style={{ ...inputS, resize: "vertical" }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Estado</label>
+              <select value={editProyFrm.estado} onChange={(e) => setEditProyFrm((p) => ({ ...p, estado: e.target.value }))} style={inputS}>
+                {Object.entries(ESTADO_MAP).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Fecha de entrega</label>
+              <input type="date" value={editProyFrm.fechaEntrega} onChange={(e) => setEditProyFrm((p) => ({ ...p, fechaEntrega: e.target.value }))} style={inputS} />
+            </div>
+          </div>
+          {/* Encargados */}
+          {subadmins.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Encargados del equipo</label>
+              <div style={{ border: "1px solid var(--border)", borderRadius: "8px", background: "var(--bg-soft)", maxHeight: "110px", overflowY: "auto", padding: "0.4rem 0", display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+                {subadmins.map((s: any) => (
+                  <label key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.55rem", padding: "0.35rem 0.75rem", cursor: "pointer", fontSize: "0.78rem", color: "var(--text-primary)", userSelect: "none" }}>
+                    <input
+                      type="checkbox"
+                      checked={editProyFrm.encargadosIds.includes(s.id)}
+                      onChange={() => setEditProyFrm((p) => ({
+                        ...p,
+                        encargadosIds: p.encargadosIds.includes(s.id)
+                          ? p.encargadosIds.filter((x) => x !== s.id)
+                          : [...p.encargadosIds, s.id],
+                      }))}
+                      style={{ accentColor: "var(--verde)", width: "14px", height: "14px" }}
+                    />
+                    {s.nombre}
+                  </label>
+                ))}
+              </div>
+              {editProyFrm.encargadosIds.length > 0 && (
+                <p style={{ fontSize: "0.7rem", color: "var(--verde)", margin: 0 }}>
+                  {editProyFrm.encargadosIds.length} encargado{editProyFrm.encargadosIds.length > 1 ? "s" : ""} seleccionado{editProyFrm.encargadosIds.length > 1 ? "s" : ""}
+                </p>
+              )}
+            </div>
+          )}
+          <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.25rem" }}>
+            <button type="button" onClick={() => setModalEditProyecto(false)} style={{ flex: 1, padding: "0.55rem", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)" }}>Cancelar</button>
+            <button type="submit" disabled={editProyLoading} style={{ flex: 2, padding: "0.55rem", borderRadius: "8px", border: "none", background: "var(--verde)", color: "#fff", fontWeight: 600, fontSize: "0.8rem", cursor: editProyLoading ? "wait" : "pointer" }}>
+              {editProyLoading ? "Guardando..." : "Guardar cambios"}
+            </button>
+          </div>
+        </form>
+      </AppModal>
+      <ConfirmDialog
+        open={confirmState.open}
+        onClose={() => setConfirmState((p) => ({ ...p, open: false }))}
+        onConfirm={confirmState.onConfirm}
+        title={confirmState.title}
+        message={confirmState.message}
+      />
     </DndContext>
   );
 }

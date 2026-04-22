@@ -107,8 +107,19 @@ export function crearTarea(data: {
   prioridad?: string;
   fechaLimite?: string;
   implementacionId: string;
+  responsablesIds?: string[];
 }) {
   return apiFetch<any>('/implementaciones/tareas', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function actualizarTarea(id: string, data: {
+  titulo?: string;
+  descripcion?: string;
+  prioridad?: string;
+  fechaLimite?: string;
+  responsablesIds?: string[];
+}) {
+  return apiFetch<any>(`/implementaciones/tareas/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 }
 
 export function moverTarea(id: string, columna: string) {
@@ -206,6 +217,16 @@ export function getProyectosPorCliente(clienteId: string) {
 
 export function getAdminProyectos() {
   return apiFetch<any[]>('/proyectos');
+}
+
+export function actualizarProyecto(id: string, data: {
+  nombre?: string;
+  descripcion?: string;
+  estado?: string;
+  fechaEntrega?: string;
+  encargadosIds?: string[];
+}) {
+  return apiFetch<any>(`/proyectos/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 }
 
 export function crearProyecto(data: {
