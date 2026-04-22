@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getAdminFacturas } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   pendiente: { label: "Pendiente", color: "#f59e0b" },
@@ -43,7 +44,7 @@ export default function AdminFacturasPage() {
         ))}
       </div>
 
-      {loading ? <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Cargando...</p> : facturas.length === 0 ? (
+      {loading ? <LoadingSpinner text="Cargando facturas..." /> : facturas.length === 0 ? (
         <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", padding: "3rem 0" }}>No hay facturas.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getAdminReuniones, getClientes, crearReunion, type UsuarioSession } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 function ModalCrearReunion({ clientes, onClose, onCreada }: {
   clientes: UsuarioSession[];
@@ -99,7 +100,7 @@ export default function AdminReunionesPage() {
         </button>
       </div>
 
-      {loading ? <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Cargando...</p> : reuniones.length === 0 ? (
+      {loading ? <LoadingSpinner text="Cargando reuniones..." /> : reuniones.length === 0 ? (
         <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", padding: "3rem 0" }}>No hay reuniones.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>

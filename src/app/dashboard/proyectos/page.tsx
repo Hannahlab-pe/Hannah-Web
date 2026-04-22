@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getMisProyectos } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const ESTADO_MAP: Record<string, { label: string; bg: string; text: string }> = {
   pendiente:   { label: "Pendiente",   bg: "rgba(245,158,11,0.1)",  text: "#F59E0B" },
@@ -68,9 +69,7 @@ export default function ProyectosPage() {
       </div>
 
       {/* Loading */}
-      {loading && (
-        <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", fontFamily: "'Outfit', sans-serif" }}>Cargando proyectos...</p>
-      )}
+      {loading && <LoadingSpinner text="Cargando proyectos..." />}
 
       {/* Empty */}
       {!loading && filtered.length === 0 && (

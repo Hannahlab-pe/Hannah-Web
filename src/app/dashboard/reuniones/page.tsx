@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getMisReuniones } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
   sprint:    { bg: "rgba(74,139,0,0.10)",   color: "var(--verde)" },
@@ -121,7 +122,7 @@ export default function ReunionesPage() {
       </div>
 
       {loading ? (
-        <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", fontFamily: "'Outfit', sans-serif" }}>Cargando reuniones...</p>
+        <LoadingSpinner text="Cargando reuniones..." />
       ) : reuniones.length === 0 ? (
         <div style={{ padding: "3rem", textAlign: "center", borderRadius: "16px", border: "1px dashed var(--border)" }}>
           <p style={{ color: "var(--text-muted)", fontFamily: "'Outfit', sans-serif" }}>No hay reuniones programadas.</p>

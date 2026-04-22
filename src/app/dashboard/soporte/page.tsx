@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getMisTickets, crearTicket } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const headingFont = "'Google Sans', system-ui";
 const bodyFont = "'Outfit', sans-serif";
@@ -188,7 +189,7 @@ export default function SoportePage() {
 
       {/* Table */}
       {loading ? (
-        <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", fontFamily: bodyFont }}>Cargando tickets...</p>
+        <LoadingSpinner text="Cargando tickets..." />
       ) : filtered.length === 0 ? (
         <div style={{ padding: "3rem", textAlign: "center", borderRadius: "16px", border: "1px dashed var(--border)" }}>
           <p style={{ color: "var(--text-muted)", fontFamily: bodyFont }}>No hay tickets en esta categoria.</p>

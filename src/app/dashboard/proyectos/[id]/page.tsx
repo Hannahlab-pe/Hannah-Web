@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getProyecto, getImplementacionesByProyecto } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const COLUMNAS = [
   { key: "por_hacer",   label: "Por hacer",   color: "#6B7280", bg: "rgba(107,114,128,0.06)" },
@@ -55,11 +56,7 @@ export default function ProyectoDetallePage() {
 
   useEffect(() => { cargar(); }, [cargar]);
 
-  if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "200px" }}>
-      <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Cargando proyecto...</p>
-    </div>
-  );
+  if (loading) return <LoadingSpinner text="Cargando proyecto..." />;
   if (error) return <div style={{ padding: "2rem", color: "#ef4444", fontSize: "0.85rem" }}>{error}</div>;
 
   const estadoInfo = proyecto ? (ESTADO_MAP[proyecto.estado] ?? { label: proyecto.estado, color: "#6B7280" }) : null;

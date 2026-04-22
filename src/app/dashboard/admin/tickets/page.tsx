@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getAdminTickets, responderTicket } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const PRIORIDAD_COLOR: Record<string, string> = {
   baja: "#22c55e", media: "#f59e0b", alta: "#ef4444", urgente: "#dc2626",
@@ -53,7 +54,7 @@ export default function AdminTicketsPage() {
       </div>
 
       {loading ? (
-        <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Cargando...</p>
+        <LoadingSpinner text="Cargando tickets..." />
       ) : tickets.length === 0 ? (
         <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", padding: "3rem 0" }}>No hay tickets.</p>
       ) : (

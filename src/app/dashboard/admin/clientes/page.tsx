@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 import { getClientes, crearCliente, toggleClienteActivo, type UsuarioSession } from "@/libs/api";
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -207,7 +208,7 @@ export default function ClientesPage() {
 
       {/* Lista */}
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", fontSize: "0.85rem" }}>Cargando clientes...</div>
+        <LoadingSpinner text="Cargando clientes..." />
       ) : filtrados.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", fontSize: "0.85rem" }}>
           {search ? "No se encontraron resultados." : "Aún no hay clientes. Crea el primero."}

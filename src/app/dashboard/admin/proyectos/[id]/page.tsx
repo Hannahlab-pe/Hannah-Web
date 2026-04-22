@@ -29,6 +29,7 @@ import {
   moverTarea,
   eliminarTarea,
 } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 // ── Constantes ────────────────────────────────────────────────────
 const COLUMNAS = [
@@ -379,11 +380,7 @@ export default function KanbanAdminPage() {
     color: "var(--text-primary)", outline: "none", width: "100%", boxSizing: "border-box",
   };
 
-  if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "200px" }}>
-      <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Cargando kanban...</p>
-    </div>
-  );
+  if (loading) return <LoadingSpinner text="Cargando kanban..." />;
 
   if (error) return (
     <div style={{ padding: "2rem", color: "#ef4444", fontSize: "0.85rem" }}>{error}</div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getMisDocumentos } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const headingFont = "'Google Sans', system-ui";
 const bodyFont = "'Outfit', sans-serif";
@@ -99,7 +100,7 @@ export default function DocumentosPage() {
 
       {/* Content */}
       {loading ? (
-        <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", fontFamily: bodyFont }}>Cargando documentos...</p>
+        <LoadingSpinner text="Cargando documentos..." />
       ) : filtered.length === 0 ? (
         <div style={{ padding: "3rem", textAlign: "center", borderRadius: "16px", border: "1px dashed var(--border)" }}>
           <p style={{ color: "var(--text-muted)", fontFamily: bodyFont }}>No hay documentos en esta categoria.</p>

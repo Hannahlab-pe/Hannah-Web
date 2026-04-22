@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getAdminDocumentos } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const CATEGORIA_COLOR: Record<string, string> = {
   contrato: "#6366f1",
@@ -46,7 +47,7 @@ export default function AdminDocumentosPage() {
         <input type="text" placeholder="Buscar documentos..." value={search} onChange={(e) => setSearch(e.target.value)} style={{ width: "100%", padding: "0.5rem 0.75rem 0.5rem 2.25rem", borderRadius: "10px", fontSize: "0.8rem", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text-primary)", outline: "none", boxSizing: "border-box" }} />
       </div>
 
-      {loading ? <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>Cargando...</p> : filtrados.length === 0 ? (
+      {loading ? <LoadingSpinner text="Cargando documentos..." /> : filtrados.length === 0 ? (
         <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", padding: "3rem 0" }}>No hay documentos.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>

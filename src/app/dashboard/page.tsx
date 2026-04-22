@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { getMisProyectos, getMisFacturas, getMisTickets, getMisReuniones, getUsuarioGuardado } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 function hora() {
   const h = new Date().getHours();
@@ -131,7 +132,7 @@ export default function DashboardPage() {
             Tickets recientes
           </h3>
           {loading ? (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Cargando...</p>
+            <LoadingSpinner compact text="Cargando tickets..." />
           ) : tickets.length === 0 ? (
             <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>No hay tickets.</p>
           ) : (
@@ -161,7 +162,7 @@ export default function DashboardPage() {
             Proyectos
           </h3>
           {loading ? (
-            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Cargando...</p>
+            <LoadingSpinner compact text="Cargando proyectos..." />
           ) : proyectos.length === 0 ? (
             <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>No hay proyectos asignados.</p>
           ) : (

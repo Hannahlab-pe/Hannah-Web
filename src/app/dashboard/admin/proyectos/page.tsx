@@ -223,7 +223,7 @@ export default function AdminProyectosPage() {
       )}
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", fontSize: "0.85rem" }}>Cargando proyectos...</div>
+        <LoadingSpinner text="Cargando proyectos..." />
       ) : filtrados.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)", fontSize: "0.85rem" }}>
           {search ? "Sin resultados." : isAdmin ? "Aún no hay proyectos. Crea el primero." : "Aún no tienes proyectos asignados."}

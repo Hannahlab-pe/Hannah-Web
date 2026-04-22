@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getMisFacturas } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const ESTADO_STYLE: Record<string, { bg: string; color: string; border: string }> = {
   pagada:    { bg: "rgba(74,139,0,0.1)",    color: "var(--verde)",  border: "rgba(74,139,0,0.2)" },
@@ -106,7 +107,7 @@ export default function FacturacionPage() {
 
       {/* Invoices Table */}
       {loading ? (
-        <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", fontFamily: "'Outfit', sans-serif" }}>Cargando facturas...</p>
+        <LoadingSpinner text="Cargando facturas..." />
       ) : filtered.length === 0 ? (
         <div style={{ padding: "3rem", textAlign: "center", borderRadius: "16px", border: "1px dashed var(--border)" }}>
           <p style={{ color: "var(--text-muted)", fontFamily: "'Outfit', sans-serif" }}>No hay facturas en esta categoria.</p>
