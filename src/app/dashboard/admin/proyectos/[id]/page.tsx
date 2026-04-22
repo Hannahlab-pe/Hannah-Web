@@ -167,25 +167,49 @@ function TareaCard({
         </p>
       )}
 
-      {/* Responsables */}
-      {tarea.responsables?.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", flexWrap: "wrap" }}>
-          {tarea.responsables.map((r: any) => (
-            <span key={r.id} style={{
-              fontSize: "0.6rem", fontWeight: 600, padding: "0.1rem 0.45rem",
-              borderRadius: "999px", background: "rgba(74,139,0,0.1)",
-              color: "var(--verde)", border: "1px solid rgba(74,139,0,0.2)",
-            }}>
-              {r.nombre.split(" ")[0]}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* Footer: responsables + fecha */}
+      {(tarea.responsables?.length > 0 || tarea.fechaLimite) && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.1rem" }}>
+          {/* Avatares de responsables */}
+          {tarea.responsables?.length > 0 ? (
+            <div style={{ display: "flex", alignItems: "center" }}>
+              {tarea.responsables.map((r: any, i: number) => {
+                const AVATAR_COLORS = ["#4A8B00", "#0ea5e9", "#8b5cf6", "#f59e0b", "#ec4899", "#06b6d4"];
+                const bg = AVATAR_COLORS[r.nombre.charCodeAt(0) % AVATAR_COLORS.length];
+                const inicial = r.nombre.trim().charAt(0).toUpperCase();
+                return (
+                  <div
+                    key={r.id}
+                    title={r.nombre}
+                    style={{
+                      width: 22, height: 22, borderRadius: "50%", background: bg,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "0.58rem", fontWeight: 700, color: "#fff",
+                      border: "2px solid var(--bg)",
+                      marginLeft: i > 0 ? -6 : 0,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {inicial}
+                  </div>
+                );
+              })}
+            </div>
+          ) : <span />}
 
-      {tarea.fechaLimite && (
-        <p style={{ fontSize: "0.68rem", color: "var(--text-muted)", margin: 0 }}>
-          📅 {fmt(tarea.fechaLimite)}
-        </p>
+          {/* Fecha límite */}
+          {tarea.fechaLimite && (
+            <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", color: "var(--text-muted)" }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 11, height: 11, flexShrink: 0 }}>
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+              <span style={{ fontSize: "0.65rem" }}>{fmt(tarea.fechaLimite)}</span>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
