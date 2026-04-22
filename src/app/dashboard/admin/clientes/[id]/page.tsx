@@ -1,10 +1,167 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getCliente, getProyectosPorCliente } from "@/libs/api";
+import { Dialog, Transition } from "@headlessui/react";
+import { getCliente, getProyectosPorCliente, getClientes, crearProyecto, type UsuarioSession } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
 import PageHeader from "@/components/shared/page-header";
+
+// ── Estilos base modal ────────────────────────────────────────────
+const INP: React.CSSProperties = {
+  padding: "0.5rem 0.75rem", borderRadius: "8px", fontSize: "0.8rem",
+  border: "1px solid var(--border)", background: "var(--bg-soft)",
+  color: "var(--text-primary)", outline: "none", width: "100%", boxSizing: "border-box",
+};
+const LBL: React.CSSProperties = {
+  fontSize: "0.72rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.3rem", display: "block",
+};
+
+// ── Modal nuevo proyecto (cliente pre-seleccionado) ───────────────
+function ModalNuevoProyecto({ open, onClose, onCreado, clienteId, clienteNombre }: {
+  open: boolean;
+  onClose: () => void;
+  onCreado: () => void;
+  clienteId: string;
+  clienteNombre: string;
+}) {
+  const [nombre, setNombre] = useState("");
+  const [descripcion, setDescripcion] = useState("");
+  const [fechaEntrega, setFechaEntrega] = useState("");
+  const [encargadosIds, setEncargadosIds] = useState<string[]>([]);
+  const [subadmins, setSubadmins] = useState<UsuarioSession[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    getClientes().then((all: any[]) =>
+      setSubadmins(all.filter((u) => u.rol === "subadmin"))
+    ).catch(() => {});
+  }, [open]);
+
+  function toggleEncargado(id: string) {
+    setEncargadosIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    try {
+      await crearProyecto({
+        nombre,
+        descripcion: descripcion || undefined,
+        clienteId,
+        fechaEntrega: fechaEntrega || undefined,
+        encargadosIds: encargadosIds.length > 0 ? encargadosIds : undefined,
+      });
+      setNombre(""); setDescripcion(""); setFechaEntrega(""); setEncargadosIds([]);
+      onCreado();
+      onClose();
+    } catch (err: any) {
+      setError(err.message ?? "Error al crear proyecto");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Transition appear show={open} as={Fragment}>
+      <Dialog as="div" style={{ position: "relative", zIndex: 50 }} onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"
+          leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0"
+        >
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+        </Transition.Child>
+
+        <div style={{ position: "fixed", inset: 0, overflowY: "auto" }}>
+          <div style={{ display: "flex", minHeight: "100%", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-200" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
+              leave="ease-in duration-150" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel style={{
+                width: "100%", maxWidth: "560px",
+                background: "var(--bg)", border: "1px solid var(--border)",
+                borderRadius: "16px", padding: "2rem",
+                display: "flex", flexDirection: "column", gap: "1.1rem",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+              }}>
+                {/* Header */}
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                  <div>
+                    <Dialog.Title style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
+                      Nuevo proyecto
+                    </Dialog.Title>
+                    <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>
+                      Cliente: <strong style={{ color: "var(--text-primary)" }}>{clienteNombre}</strong>
+                    </p>
+                  </div>
+                  <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.2rem", lineHeight: 1 }}>✕</button>
+                </div>
+
+                {error && (
+                  <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid #ef4444", borderRadius: "8px", padding: "0.6rem 0.9rem", fontSize: "0.75rem", color: "#ef4444" }}>
+                    {error}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                  <div>
+                    <label style={LBL}>Nombre del proyecto <span style={{ color: "#ef4444" }}>*</span></label>
+                    <input required type="text" placeholder="Ej: Web corporativa..." value={nombre} onChange={(e) => setNombre(e.target.value)} style={INP} />
+                  </div>
+
+                  <div>
+                    <label style={LBL}>Descripción</label>
+                    <textarea rows={2} placeholder="Descripción breve del proyecto..." value={descripcion} onChange={(e) => setDescripcion(e.target.value)} style={{ ...INP, resize: "vertical" }} />
+                  </div>
+
+                  {subadmins.length > 0 && (
+                    <div>
+                      <label style={LBL}>Encargados del equipo</label>
+                      <div style={{ border: "1px solid var(--border)", borderRadius: "8px", background: "var(--bg-soft)", maxHeight: "110px", overflowY: "auto", padding: "0.4rem 0", display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+                        {subadmins.map((s) => (
+                          <label key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.55rem", padding: "0.35rem 0.75rem", cursor: "pointer", fontSize: "0.78rem", color: "var(--text-primary)", userSelect: "none" }}>
+                            <input type="checkbox" checked={encargadosIds.includes(s.id)} onChange={() => toggleEncargado(s.id)} style={{ accentColor: "var(--verde)", width: "14px", height: "14px", cursor: "pointer" }} />
+                            {s.nombre}
+                          </label>
+                        ))}
+                      </div>
+                      {encargadosIds.length > 0 && (
+                        <p style={{ fontSize: "0.7rem", color: "var(--verde)", margin: "0.3rem 0 0" }}>
+                          {encargadosIds.length} encargado{encargadosIds.length > 1 ? "s" : ""} seleccionado{encargadosIds.length > 1 ? "s" : ""}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <div>
+                    <label style={LBL}>Fecha de entrega</label>
+                    <input type="date" value={fechaEntrega} onChange={(e) => setFechaEntrega(e.target.value)} style={INP} />
+                  </div>
+
+                  <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.25rem" }}>
+                    <button type="button" onClick={onClose} style={{ flex: 1, padding: "0.6rem", borderRadius: "8px", fontSize: "0.8rem", border: "1px solid var(--border)", background: "transparent", cursor: "pointer", color: "var(--text-secondary)", fontWeight: 500 }}>
+                      Cancelar
+                    </button>
+                    <button type="submit" disabled={loading} style={{ flex: 2, padding: "0.6rem", borderRadius: "8px", fontSize: "0.82rem", background: "var(--verde)", border: "none", color: "#fff", fontWeight: 600, cursor: loading ? "wait" : "pointer", opacity: loading ? 0.7 : 1 }}>
+                      {loading ? "Creando..." : "Crear proyecto"}
+                    </button>
+                  </div>
+                </form>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+}
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   pendiente:   { label: "Pendiente",   color: "#f59e0b" },
@@ -26,6 +183,7 @@ export default function ClienteDetallePage() {
   const [proyectos, setProyectos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [modalProyecto, setModalProyecto] = useState(false);
 
   const cargar = useCallback(async () => {
     try {
@@ -100,16 +258,32 @@ export default function ClienteDetallePage() {
       {/* Proyectos */}
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
-          <h2 style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
-            Proyectos asignados
-          </h2>
-          <span style={{
-            fontSize: "0.65rem", fontWeight: 700, padding: "0.15rem 0.55rem",
-            borderRadius: "999px", background: "var(--bg-soft)", border: "1px solid var(--border)",
-            color: "var(--text-muted)",
-          }}>
-            {proyectos.length}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <h2 style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
+              Proyectos asignados
+            </h2>
+            <span style={{
+              fontSize: "0.65rem", fontWeight: 700, padding: "0.15rem 0.55rem",
+              borderRadius: "999px", background: "var(--bg-soft)", border: "1px solid var(--border)",
+              color: "var(--text-muted)",
+            }}>
+              {proyectos.length}
+            </span>
+          </div>
+          <button
+            onClick={() => setModalProyecto(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: "0.4rem",
+              padding: "0.45rem 0.9rem", borderRadius: "8px", fontSize: "0.78rem",
+              background: "var(--verde)", border: "none", color: "#fff",
+              fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: "13px", height: "13px" }}>
+              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+            </svg>
+            Nuevo proyecto
+          </button>
         </div>
 
         {proyectos.length === 0 ? (
@@ -194,6 +368,14 @@ export default function ClienteDetallePage() {
           </div>
         )}
       </div>
+
+      <ModalNuevoProyecto
+        open={modalProyecto}
+        onClose={() => setModalProyecto(false)}
+        onCreado={cargar}
+        clienteId={id}
+        clienteNombre={cliente?.nombre ?? ""}
+      />
     </div>
   );
 }

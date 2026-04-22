@@ -165,12 +165,33 @@ export function crearCliente(data: {
   password: string;
   empresa?: string;
   telefono?: string;
+  ruc?: string;
+  direccion?: string;
 }) {
   return apiFetch<UsuarioSession>('/usuarios', { method: 'POST', body: JSON.stringify(data) });
 }
 
+export function enviarBienvenida(id: string, password: string) {
+  return apiFetch<{ ok: boolean }>(`/usuarios/${id}/bienvenida`, {
+    method: 'POST',
+    body: JSON.stringify({ password }),
+  });
+}
+
 export function getCliente(id: string) {
   return apiFetch<UsuarioSession>(`/usuarios/${id}`);
+}
+
+export function crearMiembro(data: {
+  nombre: string;
+  email: string;
+  password: string;
+  telefono?: string;
+}) {
+  return apiFetch<UsuarioSession>('/usuarios', {
+    method: 'POST',
+    body: JSON.stringify({ ...data, rol: 'subadmin' }),
+  });
 }
 
 export function toggleClienteActivo(id: string, activo: boolean) {
