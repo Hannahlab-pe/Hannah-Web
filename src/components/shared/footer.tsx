@@ -60,10 +60,10 @@ export const Footer = () => {
             <span style={{ opacity: 0.4 }}>·</span>
             <span>Lima, Perú 🇵🇪</span>
             <span style={{ opacity: 0.4 }}>·</span>
-            <a href="tel:+51984323201" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.3s" }}
+            <a href="tel:+51925223153" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.3s" }}
               onMouseEnter={(e) => { e.currentTarget.style.color = "var(--verde)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(255,255,255,0.35)"; }}
-            >+51 984 323 201</a>
+            >+51 925 223 153</a>
           </div>
 
           {/* Right: social links */}

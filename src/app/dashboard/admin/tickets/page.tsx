@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getAdminTickets, responderTicket } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
+import PageHeader from "@/components/shared/page-header";
 
 const PRIORIDAD_COLOR: Record<string, string> = {
   baja: "#22c55e", media: "#f59e0b", alta: "#ef4444", urgente: "#dc2626",
@@ -47,11 +48,11 @@ export default function AdminTicketsPage() {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "860px" }}>
-      <div>
-        <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>Tickets de soporte</h1>
-        <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>{tickets.length} ticket{tickets.length !== 1 ? "s" : ""}</p>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <PageHeader
+        title="Tickets de soporte"
+        subtitle={`${tickets.length} ticket${tickets.length !== 1 ? "s" : ""}`}
+      />
 
       {loading ? (
         <LoadingSpinner text="Cargando tickets..." />

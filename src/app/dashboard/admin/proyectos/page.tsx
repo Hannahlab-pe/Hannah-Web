@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getAdminProyectos, getProyectosComoEncargado, getClientes, crearProyecto, getUsuarioGuardado, type UsuarioSession } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
+import PageHeader from "@/components/shared/page-header";
 
 // ── Helpers ──────────────────────────────────────────────────────
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
@@ -187,28 +189,12 @@ export default function AdminProyectosPage() {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "960px" }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-        <div>
-          <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>
-            {isAdmin ? "Proyectos" : "Mis proyectos asignados"}
-          </h1>
-          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>
-            {proyectos.length} proyecto{proyectos.length !== 1 ? "s" : ""}{isAdmin ? " en total" : " asignados a ti"}
-          </p>
-        </div>
-        {isAdmin && (
-          <button onClick={() => setModal(true)} style={{
-            display: "flex", alignItems: "center", gap: "0.5rem",
-            padding: "0.55rem 1rem", borderRadius: "10px", fontSize: "0.8rem", fontWeight: 600,
-            background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer",
-          }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "15px", height: "15px" }}><path d="M12 4.5v15m7.5-7.5h-15" strokeLinecap="round" /></svg>
-            Nuevo proyecto
-          </button>
-        )}
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <PageHeader
+        title={isAdmin ? "Proyectos" : "Mis proyectos asignados"}
+        subtitle={`${proyectos.length} proyecto${proyectos.length !== 1 ? "s" : ""}${isAdmin ? " en total" : " asignados a ti"}`}
+        action={isAdmin ? { label: "Nuevo proyecto", onClick: () => setModal(true) } : undefined}
+      />
 
       {/* Buscador */}
       <div style={{ position: "relative" }}>

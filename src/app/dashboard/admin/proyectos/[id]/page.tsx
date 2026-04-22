@@ -1,12 +1,13 @@
 ﻿"use client";
 
-import { useState, useEffect, useCallback, Fragment } from "react";
+import { useState, useEffect, useCallback, useRef, Fragment } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  useDroppable,
   useSensor,
   useSensors,
   closestCorners,
@@ -66,6 +67,16 @@ const ESTADO_MAP: Record<string, { label: string; color: string }> = {
 function fmt(fecha?: string) {
   if (!fecha) return null;
   return new Date(fecha).toLocaleDateString("es-PE", { day: "2-digit", month: "short" });
+}
+
+// ── Columna droppable ─────────────────────────────────────────────
+function DroppableColumn({ id, children, style }: { id: string; children: React.ReactNode; style?: React.CSSProperties }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <div ref={setNodeRef} style={{ ...style, outline: isOver ? "2px solid var(--verde)" : undefined, transition: "outline 0.15s" }}>
+      {children}
+    </div>
+  );
 }
 
 // ── Componente tarjeta tarea (draggable) ──────────────────────────
@@ -232,8 +243,23 @@ export default function KanbanAdminPage() {
   const [tareaFrm, setTareaFrm] = useState({ titulo: "", descripcion: "", prioridad: "media", fechaLimite: "" });
   const [tareaLoading, setTareaLoading] = useState(false);
 
+  // ── Fases colapsadas ──
+  const [collapsedFases, setCollapsedFases] = useState<Set<string>>(new Set());
+  function toggleFase(id: string) {
+    setCollapsedFases((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
   // ── Drag & Drop ──
   const [activeTarea, setActiveTarea] = useState<any>(null);
+  // Ref que siempre apunta al estado más reciente (evita stale closures)
+  const implRef = useRef<any[]>([]);
+  useEffect(() => { implRef.current = implementaciones; }, [implementaciones]);
+  // Columna original al iniciar el drag
+  const origColRef = useRef<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -256,9 +282,9 @@ export default function KanbanAdminPage() {
 
   useEffect(() => { cargar(); }, [cargar]);
 
-  // helpers DnD
-  function findColKey(tareaId: string): string | null {
-    for (const impl of implementaciones) {
+  // helpers DnD — usa implRef para siempre leer estado fresco
+  function findColKeyFresh(tareaId: string): string | null {
+    for (const impl of implRef.current) {
       const t = impl.tareas?.find((t: any) => t.id === tareaId);
       if (t) return t.columna;
     }
@@ -267,7 +293,8 @@ export default function KanbanAdminPage() {
 
   function handleDragStart(event: DragStartEvent) {
     const tareaId = event.active.id as string;
-    for (const impl of implementaciones) {
+    origColRef.current = findColKeyFresh(tareaId); // guarda columna original
+    for (const impl of implRef.current) {
       const t = impl.tareas?.find((t: any) => t.id === tareaId);
       if (t) { setActiveTarea(t); break; }
     }
@@ -279,14 +306,16 @@ export default function KanbanAdminPage() {
     const tareaId = active.id as string;
     const overId = over.id as string;
 
-    // "over" puede ser un colKey o un tareaId
+    // over puede ser un colKey (DroppableColumn) o el id de una tarea
     const targetCol = COL_KEYS.includes(overId)
       ? overId
-      : findColKey(overId);
+      : findColKeyFresh(overId);
 
     if (!targetCol) return;
-    if (findColKey(tareaId) === targetCol) return;
+    // evitar actualización redundante si ya está en esa columna
+    if (findColKeyFresh(tareaId) === targetCol) return;
 
+    // actualización optimista del estado local
     setImplementaciones((prev) =>
       prev.map((impl) => ({
         ...impl,
@@ -298,17 +327,20 @@ export default function KanbanAdminPage() {
   }
 
   async function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+    const { active } = event;
     setActiveTarea(null);
-    if (!over) return;
 
     const tareaId = active.id as string;
-    const overId = over.id as string;
-    const targetCol = COL_KEYS.includes(overId) ? overId : findColKey(overId);
-    if (!targetCol) return;
+    // Leemos del ref fresco: ya tiene el estado actualizado por handleDragOver
+    const currentCol = findColKeyFresh(tareaId);
+    const origCol = origColRef.current;
+    origColRef.current = null;
+
+    // Sin cambio real → no llamar API
+    if (!currentCol || !origCol || currentCol === origCol) return;
 
     try {
-      await moverTarea(tareaId, targetCol);
+      await moverTarea(tareaId, currentCol);
     } catch {
       cargar(); // revert on error
     }
@@ -399,45 +431,95 @@ export default function KanbanAdminPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "100%" }}>
 
         {/* ── Header del proyecto ── */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+        <div style={{ borderBottom: "1px solid var(--border)", paddingBottom: "1.25rem", display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+
+          {/* Fila 1: back + título + estado + acción */}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
             <button
-              onClick={() => router.push("/dashboard/admin/proyectos")}
-              style={{ background: "var(--bg-soft)", border: "1px solid var(--border)", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", color: "var(--text-secondary)", fontSize: "0.8rem", marginTop: "2px" }}
+              onClick={() => router.back()}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center",
+                width: "30px", height: "30px", borderRadius: "8px", flexShrink: 0,
+                background: "var(--bg-soft)", border: "1px solid var(--border)",
+                cursor: "pointer", color: "var(--text-muted)", transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--verde)"; e.currentTarget.style.color = "var(--verde)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
+              title="Volver"
             >
-              ← Volver
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "13px", height: "13px" }}>
+                <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
-                <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>
-                  {proyecto?.nombre}
-                </h1>
-                {estadoInfo && (
-                  <span style={{ fontSize: "0.68rem", fontWeight: 700, padding: "0.2rem 0.65rem", borderRadius: "999px", background: `${estadoInfo.color}18`, color: estadoInfo.color, border: `1px solid ${estadoInfo.color}` }}>
-                    {estadoInfo.label}
-                  </span>
-                )}
-              </div>
-              {proyecto?.cliente && (
-                <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>
-                  Cliente: <strong style={{ color: "var(--text-secondary)" }}>{proyecto.cliente.nombre}</strong>
-                  {proyecto.cliente.empresa && ` · ${proyecto.cliente.empresa}`}
-                </p>
-              )}
-              {proyecto?.encargados?.length > 0 && (
-                <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>
-                  Equipo: {proyecto.encargados.map((e: any) => e.nombre).join(", ")}
-                </p>
-              )}
+
+            <h1 style={{ fontSize: "1.35rem", fontWeight: 800, color: "var(--text-primary)", margin: 0, lineHeight: 1.2 }}>
+              {proyecto?.nombre}
+            </h1>
+
+            {estadoInfo && (
+              <span style={{ fontSize: "0.65rem", fontWeight: 700, padding: "0.2rem 0.65rem", borderRadius: "999px", background: `${estadoInfo.color}18`, color: estadoInfo.color, border: `1px solid ${estadoInfo.color}`, whiteSpace: "nowrap" }}>
+                {estadoInfo.label}
+              </span>
+            )}
+
+            <div style={{ marginLeft: "auto" }}>
+              <button
+                onClick={() => setModalFase(true)}
+                style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.5rem 1rem", borderRadius: "10px", fontSize: "0.78rem", fontWeight: 600, background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer", transition: "opacity 0.15s" }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.88"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: "13px", height: "13px" }}><path d="M12 4.5v15m7.5-7.5h-15" strokeLinecap="round" /></svg>
+                Nueva fase
+              </button>
             </div>
           </div>
 
-          {/* Progreso */}
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: "200px" }}>
-            <div style={{ flex: 1, height: "6px", borderRadius: "999px", background: "var(--bg-soft)" }}>
-              <div style={{ height: "100%", width: `${proyecto?.progreso ?? 0}%`, borderRadius: "999px", background: "var(--verde)", transition: "width 0.4s" }} />
+          {/* Fila 2: metadata + progreso */}
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap" }}>
+            {proyecto?.cliente && (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: "13px", height: "13px", color: "var(--text-muted)", flexShrink: 0 }}>
+                  <path d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span style={{ fontSize: "0.76rem", color: "var(--text-muted)" }}>
+                  <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{proyecto.cliente.nombre}</strong>
+                  {proyecto.cliente.empresa && <span style={{ color: "var(--text-muted)" }}> · {proyecto.cliente.empresa}</span>}
+                </span>
+              </div>
+            )}
+
+            {proyecto?.encargados?.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: "13px", height: "13px", color: "var(--text-muted)", flexShrink: 0 }}>
+                  <path d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span style={{ fontSize: "0.76rem", color: "var(--text-muted)" }}>
+                  {proyecto.encargados.map((e: any) => e.nombre).join(", ")}
+                </span>
+              </div>
+            )}
+
+            {proyecto?.fechaEntrega && (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: "13px", height: "13px", color: "var(--text-muted)", flexShrink: 0 }}>
+                  <path d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span style={{ fontSize: "0.76rem", color: "var(--text-muted)" }}>
+                  Entrega <strong style={{ color: "var(--text-primary)", fontWeight: 600 }}>{fmt(proyecto.fechaEntrega)}</strong>
+                </span>
+              </div>
+            )}
+
+            {/* Progreso — al final, ocupa el espacio restante */}
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.6rem", minWidth: "180px" }}>
+              <div style={{ flex: 1, height: "5px", borderRadius: "999px", background: "var(--bg-soft)" }}>
+                <div style={{ height: "100%", width: `${proyecto?.progreso ?? 0}%`, borderRadius: "999px", background: "var(--verde)", transition: "width 0.4s" }} />
+              </div>
+              <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--verde)", whiteSpace: "nowrap", minWidth: "2.2rem", textAlign: "right" }}>
+                {proyecto?.progreso ?? 0}%
+              </span>
             </div>
-            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--verde)", whiteSpace: "nowrap" }}>{proyecto?.progreso ?? 0}%</span>
           </div>
         </div>
 
@@ -469,17 +551,29 @@ export default function KanbanAdminPage() {
           const completadas = tareasPorCol["completado"]?.length ?? 0;
           const pctFase = totalTareas > 0 ? Math.round((completadas / totalTareas) * 100) : 0;
 
+          const isCollapsed = collapsedFases.has(impl.id);
+
           return (
             <div key={impl.id} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px", overflow: "hidden" }}>
               {/* Header fase */}
-              <div style={{ padding: "0.9rem 1.25rem", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+              <div
+                onClick={() => toggleFase(impl.id)}
+                style={{ padding: "0.9rem 1.25rem", borderBottom: isCollapsed ? "none" : "1px solid var(--border)", display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", cursor: "pointer", userSelect: "none" }}
+              >
+                {/* Chevron */}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                  style={{ width: "14px", height: "14px", flexShrink: 0, color: "var(--text-muted)", transition: "transform 0.2s", transform: isCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}>
+                  <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+
                 <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
                   <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-primary)" }}>{impl.nombre}</span>
                   <span style={{ fontSize: "0.65rem", fontWeight: 600, padding: "0.15rem 0.5rem", borderRadius: "999px", background: "var(--bg-soft)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
                     {TIPOS.find((t) => t.key === impl.tipo)?.label ?? impl.tipo}
                   </span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }} onClick={(e) => e.stopPropagation()}>
                   <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
                     {completadas}/{totalTareas} tareas · {pctFase}%
                   </span>
@@ -487,9 +581,11 @@ export default function KanbanAdminPage() {
                     <div style={{ height: "100%", width: `${pctFase}%`, borderRadius: "999px", background: "var(--verde)" }} />
                   </div>
                   <button
-                    onClick={() => handleEliminarFase(impl.id)}
+                    onClick={(e) => { e.stopPropagation(); handleEliminarFase(impl.id); }}
                     title="Eliminar fase"
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "0.85rem" }}
+                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "0.85rem", padding: "2px" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "#ef4444"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
                   >
                     🗑
                   </button>
@@ -497,13 +593,15 @@ export default function KanbanAdminPage() {
               </div>
 
               {/* Tablero kanban */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, overflowX: "auto" }}>
+              {!isCollapsed && <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, overflowX: "auto" }}>
+
                 {COLUMNAS.map((col, colIdx) => {
                   const tareas = tareasPorCol[col.key];
                   const tareaIds = tareas.map((t: any) => t.id);
                   return (
                     <SortableContext key={col.key} id={col.key} items={tareaIds} strategy={verticalListSortingStrategy}>
-                      <div
+                      <DroppableColumn
+                        id={col.key}
                         style={{
                           borderRight: colIdx < COLUMNAS.length - 1 ? "1px solid var(--border)" : "none",
                           padding: "1rem",
@@ -549,11 +647,11 @@ export default function KanbanAdminPage() {
                         >
                           + Agregar tarea
                         </button>
-                      </div>
+                      </DroppableColumn>
                     </SortableContext>
                   );
                 })}
-              </div>
+              </div>}
             </div>
           );
         })}

@@ -163,7 +163,7 @@ export default function Contacto() {
             ))}
           </div>
 
-          <a href="https://wa.me/51984323201?text=Hola%2C%20me%20interesa%20conocer%20m%C3%A1s%20sobre%20Hannah%20Lab" target="_blank" rel="noopener noreferrer" className="contact-el" style={{ opacity: 0, display: "inline-flex", alignItems: "center", gap: "0.6rem", padding: "0.7rem 1.5rem", borderRadius: "12px", background: "#25D366", textDecoration: "none", transition: "all 0.3s", fontSize: "0.85rem", color: "#fff", fontWeight: 600 }}
+          <a href="https://wa.me/51925223153?text=Hola%2C%20me%20interesa%20conocer%20m%C3%A1s%20sobre%20Hannah%20Lab" target="_blank" rel="noopener noreferrer" className="contact-el" style={{ opacity: 0, display: "inline-flex", alignItems: "center", gap: "0.6rem", padding: "0.7rem 1.5rem", borderRadius: "12px", background: "#25D366", textDecoration: "none", transition: "all 0.3s", fontSize: "0.85rem", color: "#fff", fontWeight: 600 }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "#1fb855"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "#25D366"; }}
           >

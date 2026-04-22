@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getAdminReuniones, getClientes, crearReunion, type UsuarioSession } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
+import PageHeader from "@/components/shared/page-header";
 
 function ModalCrearReunion({ clientes, onClose, onCreada }: {
   clientes: UsuarioSession[];
@@ -88,17 +89,12 @@ export default function AdminReunionesPage() {
   useEffect(() => { cargar(); }, []);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "860px" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-        <div>
-          <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>Reuniones</h1>
-          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>{reuniones.length} reunion{reuniones.length !== 1 ? "es" : ""}</p>
-        </div>
-        <button onClick={() => setModal(true)} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.55rem 1rem", borderRadius: "10px", fontSize: "0.8rem", fontWeight: 600, background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer" }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "15px", height: "15px" }}><path d="M12 4.5v15m7.5-7.5h-15" strokeLinecap="round" /></svg>
-          Nueva reunion
-        </button>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <PageHeader
+        title="Reuniones"
+        subtitle={`${reuniones.length} reunion${reuniones.length !== 1 ? "es" : ""}`}
+        action={{ label: "Nueva reunión", onClick: () => setModal(true) }}
+      />
 
       {loading ? <LoadingSpinner text="Cargando reuniones..." /> : reuniones.length === 0 ? (
         <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", padding: "3rem 0" }}>No hay reuniones.</p>

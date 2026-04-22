@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getAdminDocumentos } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
+import PageHeader from "@/components/shared/page-header";
 
 const CATEGORIA_COLOR: Record<string, string> = {
   contrato: "#6366f1",
@@ -34,11 +35,11 @@ export default function AdminDocumentosPage() {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "900px" }}>
-      <div>
-        <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>Documentos</h1>
-        <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>{documentos.length} documento{documentos.length !== 1 ? "s" : ""}</p>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <PageHeader
+        title="Documentos"
+        subtitle={`${documentos.length} documento${documentos.length !== 1 ? "s" : ""}`}
+      />
 
       <div style={{ position: "relative" }}>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: "15px", height: "15px", position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }}>

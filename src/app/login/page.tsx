@@ -256,7 +256,7 @@ export default function LoginPage() {
           </div>
 
           {/* WhatsApp */}
-          <a className="right-extra" href="https://wa.me/51984323201?text=Hola%2C%20necesito%20acceso%20a%20mi%20cuenta" target="_blank" rel="noopener noreferrer" style={{
+          <a className="right-extra" href="https://wa.me/51925223153?text=Hola%2C%20necesito%20acceso%20a%20mi%20cuenta" target="_blank" rel="noopener noreferrer" style={{
             opacity: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.6rem",
             padding: "0.8rem", borderRadius: "12px", background: "var(--verde)",
             border: "1px solid var(--border)", textDecoration: "none",

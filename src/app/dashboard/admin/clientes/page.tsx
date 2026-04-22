@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/components/shared/loading-spinner";
+import PageHeader from "@/components/shared/page-header";
 import { getClientes, crearCliente, toggleClienteActivo, type UsuarioSession } from "@/libs/api";
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -129,6 +131,7 @@ function ModalCrearCliente({ onClose, onCreado }: { onClose: () => void; onCread
 
 // ── Página principal ─────────────────────────────────────────────
 export default function ClientesPage() {
+  const router = useRouter();
   const [clientes, setClientes] = useState<UsuarioSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -161,24 +164,12 @@ export default function ClientesPage() {
   );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "900px" }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
-        <div>
-          <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>Clientes</h1>
-          <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>
-            {clientes.length} cliente{clientes.length !== 1 ? "s" : ""} registrado{clientes.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-        <button onClick={() => setModal(true)} style={{
-          display: "flex", alignItems: "center", gap: "0.5rem",
-          padding: "0.55rem 1rem", borderRadius: "10px", fontSize: "0.8rem", fontWeight: 600,
-          background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer",
-        }}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "15px", height: "15px" }}><path d="M12 4.5v15m7.5-7.5h-15" strokeLinecap="round" /></svg>
-          Nuevo cliente
-        </button>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <PageHeader
+        title="Clientes"
+        subtitle={`${clientes.length} cliente${clientes.length !== 1 ? "s" : ""} registrado${clientes.length !== 1 ? "s" : ""}`}
+        action={{ label: "Nuevo cliente", onClick: () => setModal(true) }}
+      />
 
       {/* Buscador */}
       <div style={{ position: "relative" }}>
@@ -206,7 +197,7 @@ export default function ClientesPage() {
         </div>
       )}
 
-      {/* Lista */}
+      {/* Grid de clientes */}
       {loading ? (
         <LoadingSpinner text="Cargando clientes..." />
       ) : filtrados.length === 0 ? (
@@ -214,34 +205,56 @@ export default function ClientesPage() {
           {search ? "No se encontraron resultados." : "Aún no hay clientes. Crea el primero."}
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "1rem" }}>
           {filtrados.map((c: any) => (
-            <div key={c.id} style={{
-              display: "flex", alignItems: "center", gap: "1rem",
-              padding: "1rem 1.25rem", background: "var(--bg)", border: "1px solid var(--border)",
-              borderRadius: "12px", flexWrap: "wrap",
-            }}>
-              <Avatar nombre={c.nombre} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--text-primary)", margin: 0 }}>{c.nombre}</p>
-                <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", margin: "0.1rem 0 0" }}>{c.email}</p>
-                {c.empresa && <p style={{ fontSize: "0.72rem", color: "var(--text-secondary)", margin: "0.1rem 0 0" }}>{c.empresa}</p>}
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
+            <div
+              key={c.id}
+              onClick={() => router.push(`/dashboard/admin/clientes/${c.id}`)}
+              style={{
+                background: "var(--bg)", border: "1px solid var(--border)",
+                borderRadius: "14px", padding: "1.25rem",
+                display: "flex", flexDirection: "column", gap: "1rem",
+                cursor: "pointer",
+                transition: "box-shadow 0.2s, border-color 0.2s",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 16px rgba(0,0,0,0.07)"; (e.currentTarget as HTMLDivElement).style.borderColor = "var(--verde)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)"; }}
+            >
+              {/* Top: avatar + estado */}
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                <Avatar nombre={c.nombre} />
                 <Chip label={c.activo ? "Activo" : "Inactivo"} green={c.activo} />
-                <button
-                  onClick={() => handleToggle(c.id, c.activo)}
-                  style={{
-                    padding: "0.3rem 0.7rem", borderRadius: "8px", fontSize: "0.7rem", fontWeight: 500,
-                    border: "1px solid var(--border)", background: "transparent",
-                    cursor: "pointer", color: "var(--text-secondary)", transition: "all 0.2s",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--verde)"; e.currentTarget.style.color = "var(--verde)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-                >
-                  {c.activo ? "Desactivar" : "Activar"}
-                </button>
               </div>
+
+              {/* Info */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontWeight: 700, fontSize: "0.88rem", color: "var(--text-primary)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {c.nombre}
+                </p>
+                <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", margin: "0.2rem 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {c.email}
+                </p>
+                {c.empresa && (
+                  <p style={{ fontSize: "0.72rem", color: "var(--text-secondary)", margin: "0.2rem 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {c.empresa}
+                  </p>
+                )}
+              </div>
+
+              {/* Acción */}
+              <button
+                onClick={(e) => { e.stopPropagation(); handleToggle(c.id, c.activo); }}
+                style={{
+                  width: "100%", padding: "0.45rem", borderRadius: "8px",
+                  fontSize: "0.72rem", fontWeight: 500,
+                  border: "1px solid var(--border)", background: "transparent",
+                  cursor: "pointer", color: "var(--text-secondary)", transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => { e.stopPropagation(); e.currentTarget.style.borderColor = c.activo ? "#ef4444" : "var(--verde)"; e.currentTarget.style.color = c.activo ? "#ef4444" : "var(--verde)"; e.currentTarget.style.background = c.activo ? "rgba(239,68,68,0.05)" : "rgba(74,139,0,0.05)"; }}
+                onMouseLeave={(e) => { e.stopPropagation(); e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-secondary)"; e.currentTarget.style.background = "transparent"; }}
+              >
+                {c.activo ? "Desactivar cliente" : "Activar cliente"}
+              </button>
             </div>
           ))}
         </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getAdminFacturas } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
+import PageHeader from "@/components/shared/page-header";
 
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   pendiente: { label: "Pendiente", color: "#f59e0b" },
@@ -23,11 +24,11 @@ export default function AdminFacturasPage() {
   const totalPendiente = facturas.filter(f => f.estado === "pendiente").reduce((acc, f) => acc + Number(f.monto), 0);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "900px" }}>
-      <div>
-        <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>Facturas</h1>
-        <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>{facturas.length} factura{facturas.length !== 1 ? "s" : ""}</p>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+      <PageHeader
+        title="Facturas"
+        subtitle={`${facturas.length} factura${facturas.length !== 1 ? "s" : ""}`}
+      />
 
       {/* Resumen */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem" }}>

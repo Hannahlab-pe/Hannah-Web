@@ -169,8 +169,16 @@ export function crearCliente(data: {
   return apiFetch<UsuarioSession>('/usuarios', { method: 'POST', body: JSON.stringify(data) });
 }
 
+export function getCliente(id: string) {
+  return apiFetch<UsuarioSession>(`/usuarios/${id}`);
+}
+
 export function toggleClienteActivo(id: string, activo: boolean) {
   return apiFetch<UsuarioSession>(`/usuarios/${id}`, { method: 'PATCH', body: JSON.stringify({ activo }) });
+}
+
+export function getProyectosPorCliente(clienteId: string) {
+  return apiFetch<any[]>(`/proyectos/por-cliente/${clienteId}`);
 }
 
 // ── Admin: Proyectos (todos) ──────────────────────────────────────
