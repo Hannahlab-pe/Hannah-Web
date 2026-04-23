@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAdminTickets, responderTicket, cerrarTicket } from "@/libs/api";
+import { useRouter } from "next/navigation";
+import { getAdminTickets } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
 import PageHeader from "@/components/shared/page-header";
 
@@ -80,57 +81,59 @@ function TipoChipAdmin({ tipo }: { tipo: string }) {
 }
 
 export default function AdminTicketsPage() {
+  const router = useRouter();
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandido, setExpandido] = useState<string | null>(null);
-  const [respuesta, setRespuesta] = useState("");
-  const [enviando, setEnviando] = useState(false);
+  const [filtro, setFiltro] = useState<string>("todos");
 
-  async function cargar() {
+  useEffect(() => {
     setLoading(true);
-    try { setTickets(await getAdminTickets()); } catch { /* silencioso */ }
-    setLoading(false);
-  }
+    getAdminTickets().then(setTickets).catch(() => {}).finally(() => setLoading(false));
+  }, []);
 
-  useEffect(() => { cargar(); }, []);
-
-  async function enviarRespuesta(id: string) {
-    if (!respuesta.trim()) return;
-    setEnviando(true);
-    try {
-      await responderTicket(id, respuesta);
-      setRespuesta("");
-      setExpandido(null);
-      cargar();
-    } catch { /* silencioso */ }
-    setEnviando(false);
-  }
-
-  async function handleCerrar(id: string) {
-    try {
-      await cerrarTicket(id);
-      setExpandido(null);
-      cargar();
-    } catch { /* silencioso */ }
-  }
+  const filtered = tickets.filter((t) => {
+    if (filtro === "todos") return true;
+    if (filtro === "abierto") return t.estado === "abierto";
+    if (filtro === "en_progreso") return t.estado === "en_progreso";
+    if (filtro === "resuelto") return ["resuelto", "cerrado"].includes(t.estado);
+    return true;
+  });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-      <PageHeader
-        title="Tickets de soporte"
-        subtitle={`${tickets.length} ticket${tickets.length !== 1 ? "s" : ""}`}
-      />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+        <PageHeader
+          title="Tickets de soporte"
+          subtitle={`${tickets.length} ticket${tickets.length !== 1 ? "s" : ""}`}
+        />
+        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+          {[["todos","Todos"],["abierto","Abiertos"],["en_progreso","En progreso"],["resuelto","Resueltos"]].map(([k,l]) => (
+            <button key={k} onClick={() => setFiltro(k)} style={{
+              padding: "0.35rem 0.85rem", borderRadius: "7px", border: "1px solid",
+              borderColor: filtro === k ? "var(--verde)" : "var(--border)",
+              background: filtro === k ? "rgba(74,139,0,0.08)" : "var(--bg)",
+              color: filtro === k ? "var(--verde)" : "var(--text-secondary)",
+              fontSize: "0.78rem", fontWeight: 500, cursor: "pointer",
+            }}>{l}</button>
+          ))}
+        </div>
+      </div>
 
       {loading ? (
         <LoadingSpinner text="Cargando tickets..." />
-      ) : tickets.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textAlign: "center", padding: "3rem 0" }}>No hay tickets.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          {tickets.map((t) => (
-            <div key={t.id} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "12px", overflow: "hidden" }}>
-              <div style={{ padding: "1rem 1.25rem", display: "flex", alignItems: "center", gap: "1rem", cursor: "pointer", flexWrap: "wrap" }}
-                onClick={() => setExpandido(expandido === t.id ? null : t.id)}>
+          {filtered.map((t) => (
+            <div
+              key={t.id}
+              onClick={() => router.push(`/dashboard/admin/tickets/${t.id}`)}
+              style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "12px", overflow: "hidden", cursor: "pointer", transition: "border-color 0.15s" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--verde)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)"; }}
+            >
+              <div style={{ padding: "1rem 1.25rem", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--text-primary)", margin: 0 }}>{t.titulo}</p>
                   {t.cliente && <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", margin: "0.15rem 0 0" }}>{t.cliente.nombre} · {t.cliente.email}</p>}
@@ -142,48 +145,21 @@ export default function AdminTicketsPage() {
                       {t.proyecto.nombre}
                     </p>
                   )}
+                  {t.asignadoA && (
+                    <p style={{ fontSize: "0.68rem", color: "var(--text-muted)", margin: "0.1rem 0 0" }}>
+                      Asignado a: <strong style={{ color: "var(--text-secondary)" }}>{t.asignadoA.nombre}</strong>
+                    </p>
+                  )}
                 </div>
-                <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, flexWrap: "wrap", alignItems: "center" }}>
                   {t.tipo && <TipoChipAdmin tipo={t.tipo} />}
                   <Chip label={t.prioridad} color={PRIORIDAD_COLOR[t.prioridad] ?? "#888"} />
-                  <Chip label={ESTADO_LABEL[t.estado] ?? t.estado.replace("_", " ")} color={ESTADO_COLOR[t.estado] ?? "#888"} />
+                  <Chip label={ESTADO_LABEL[t.estado] ?? t.estado} color={ESTADO_COLOR[t.estado] ?? "#888"} />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={14} height={14} style={{ color: "var(--text-muted)", flexShrink: 0 }}>
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
                 </div>
               </div>
-              {expandido === t.id && (
-                <div style={{ padding: "0 1.25rem 1.25rem", borderTop: "1px solid var(--border)", paddingTop: "1rem" }}>
-                  {t.proyecto && (
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.25rem 0.65rem", borderRadius: "6px", background: "var(--bg-soft)", border: "1px solid var(--border)", fontSize: "0.72rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.75rem" }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={12} height={12}>
-                        <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
-                      </svg>
-                      Proyecto: <span style={{ color: "var(--text-primary)" }}>{t.proyecto.nombre}</span>
-                    </div>
-                  )}
-                  <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginBottom: "1rem", lineHeight: 1.6 }}>{t.descripcion}</p>
-                  {t.respuesta && (
-                    <div style={{ background: "rgba(74,139,0,0.06)", border: "1px solid var(--verde)", borderRadius: "8px", padding: "0.75rem", marginBottom: "1rem" }}>
-                      <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--verde)", margin: "0 0 0.3rem" }}>Respuesta actual:</p>
-                      <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: 0 }}>{t.respuesta}</p>
-                    </div>
-                  )}
-                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <textarea rows={3} placeholder="Escribe una respuesta..." value={respuesta} onChange={(e) => setRespuesta(e.target.value)} style={{ padding: "0.6rem 0.75rem", borderRadius: "8px", fontSize: "0.8rem", border: "1px solid var(--border)", background: "var(--bg-soft)", color: "var(--text-primary)", resize: "vertical", outline: "none" }} />
-                    <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-                      {t.estado !== "cerrado" && t.estado !== "resuelto" && (
-                        <button
-                          onClick={() => handleCerrar(t.id)}
-                          style={{ padding: "0.45rem 1rem", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 600, background: "var(--bg-soft)", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer" }}
-                        >
-                          Cerrar ticket
-                        </button>
-                      )}
-                      <button onClick={() => enviarRespuesta(t.id)} disabled={enviando || !respuesta.trim()} style={{ padding: "0.45rem 1rem", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 600, background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer", opacity: (enviando || !respuesta.trim()) ? 0.6 : 1 }}>
-                        {enviando ? "Enviando..." : "Responder"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </div>

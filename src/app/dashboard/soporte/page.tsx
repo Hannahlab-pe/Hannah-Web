@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Fragment } from "react";
+import { useRouter } from "next/navigation";
 import { Dialog, Transition } from "@headlessui/react";
 import { getMisTickets, crearTicket, getMisProyectos } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
@@ -293,6 +294,7 @@ function DialogNuevoReporte({
 type FilterKey = "todos" | "abierto" | "en_progreso" | "resuelto";
 
 export default function SoportePage() {
+  const router = useRouter();
   const [tickets, setTickets] = useState<any[]>([]);
   const [proyectos, setProyectos] = useState<{ id: string; nombre: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -435,7 +437,13 @@ export default function SoportePage() {
                 const ps = PRIORIDAD_STYLE[t.prioridad?.toLowerCase()] ?? PRIORIDAD_STYLE.media;
                 const es = ESTADO_STYLE[t.estado?.toLowerCase()] ?? ESTADO_STYLE.abierto;
                 return (
-                  <div key={t.id} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "12px", padding: "1rem 1.25rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  <div
+                    key={t.id}
+                    onClick={() => router.push(`/dashboard/soporte/${t.id}`)}
+                    style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "12px", padding: "1rem 1.25rem", display: "flex", flexDirection: "column", gap: "0.5rem", cursor: "pointer", transition: "border-color 0.15s" }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--verde)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)"; }}
+                  >
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", margin: 0, fontFamily: headingFont }}>{t.titulo}</p>

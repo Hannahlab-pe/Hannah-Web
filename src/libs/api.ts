@@ -245,6 +245,26 @@ export function getAdminTickets() {
   return apiFetch<any[]>('/tickets');
 }
 
+export function getTicket(id: string) {
+  return apiFetch<any>(`/tickets/${id}`);
+}
+
+export function getTicketMensajes(id: string) {
+  return apiFetch<any[]>(`/tickets/${id}/mensajes`);
+}
+
+export function enviarMensajeTicket(id: string, contenido: string) {
+  return apiFetch<any>(`/tickets/${id}/mensajes`, { method: 'POST', body: JSON.stringify({ contenido }) });
+}
+
+export function cambiarEstadoTicket(id: string, estado: string) {
+  return apiFetch<any>(`/tickets/${id}/estado`, { method: 'PATCH', body: JSON.stringify({ estado }) });
+}
+
+export function asignarTicket(id: string, usuarioId: string | null) {
+  return apiFetch<any>(`/tickets/${id}/asignar`, { method: 'PATCH', body: JSON.stringify({ usuarioId }) });
+}
+
 export function responderTicket(id: string, respuesta: string) {
   return apiFetch<any>(`/tickets/${id}/responder`, { method: 'PATCH', body: JSON.stringify({ respuesta }) });
 }

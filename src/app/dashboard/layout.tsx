@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { logoutApi, getUsuarioGuardado, type UsuarioSession } from "@/libs/api";
+import { Toaster } from "sonner";
 
 // ── Iconos ────────────────────────────────────────────────────────
 const Icon = ({ d }: { d: string }) => (
@@ -416,6 +417,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </div>
       </div>
+
+      <Toaster position="top-right" richColors closeButton duration={4000} />
     </div>
   );
 }
