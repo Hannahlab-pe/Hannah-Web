@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { getTicket, getTicketMensajes, enviarMensajeTicket } from "@/libs/api";
+import { getTicket, getTicketMensajes, enviarMensajeTicket, getUsuarioGuardado } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const TIPO_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -50,6 +50,14 @@ export default function ClienteTicketDetallePage() {
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const yo = getUsuarioGuardado();
+
+  const cargarMensajes = useCallback(async () => {
+    try {
+      const msgs = await getTicketMensajes(id);
+      setMensajes(msgs);
+    } catch { /* silencioso en polling */ }
+  }, [id]);
 
   const cargar = useCallback(async () => {
     try {
@@ -62,21 +70,39 @@ export default function ClienteTicketDetallePage() {
 
   useEffect(() => { cargar(); }, [cargar]);
 
+  // Polling cada 5s para recibir respuestas del equipo sin F5
+  useEffect(() => {
+    const interval = setInterval(cargarMensajes, 5000);
+    return () => clearInterval(interval);
+  }, [cargarMensajes]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensajes]);
 
   async function handleEnviar(e: React.FormEvent) {
     e.preventDefault();
-    if (!texto.trim()) return;
+    const contenido = texto.trim();
+    if (!contenido) return;
     setEnviando(true);
+    setTexto("");
+    // Optimistic: mostrar mensaje inmediatamente
+    const tempMsg = {
+      id: `temp-${Date.now()}`,
+      contenido,
+      creadoEn: new Date().toISOString(),
+      autor: { id: yo?.id, nombre: yo?.nombre ?? "Tú", rol: "cliente" },
+    };
+    setMensajes((prev) => [...prev, tempMsg]);
     try {
-      await enviarMensajeTicket(id, texto.trim());
-      setTexto("");
-      await cargar();
+      await enviarMensajeTicket(id, contenido);
+      await cargarMensajes();
       toast.success("Mensaje enviado");
-    } catch { toast.error("Error al enviar el mensaje"); }
-    finally { setEnviando(false); }
+    } catch {
+      setMensajes((prev) => prev.filter((m) => m.id !== tempMsg.id));
+      setTexto(contenido);
+      toast.error("Error al enviar el mensaje");
+    } finally { setEnviando(false); }
   }
 
   if (loading) return <LoadingSpinner text="Cargando..." />;

@@ -97,6 +97,20 @@ export default function AdminTicketDetallePage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const yo = getUsuarioGuardado();
 
+  const cargarTicket = useCallback(async () => {
+    try {
+      const t = await getTicket(id);
+      setTicket(t);
+    } catch { /* silencioso en polling */ }
+  }, [id]);
+
+  const cargarMensajes = useCallback(async () => {
+    try {
+      const msgs = await getTicketMensajes(id);
+      setMensajes(msgs);
+    } catch { /* silencioso en polling */ }
+  }, [id]);
+
   const cargar = useCallback(async () => {
     try {
       const [t, msgs] = await Promise.all([getTicket(id), getTicketMensajes(id)]);
@@ -108,8 +122,13 @@ export default function AdminTicketDetallePage() {
 
   useEffect(() => { cargar(); }, [cargar]);
 
+  // Polling cada 5s para mensajes nuevos
   useEffect(() => {
-    // Cargar equipo (subadmins + admins) para asignación
+    const interval = setInterval(cargarMensajes, 5000);
+    return () => clearInterval(interval);
+  }, [cargarMensajes]);
+
+  useEffect(() => {
     getClientes().then((u: any[]) => setEquipo(u.filter((x) => x.rol !== "cliente"))).catch(() => {});
   }, []);
 
@@ -119,29 +138,43 @@ export default function AdminTicketDetallePage() {
 
   async function handleEnviar(e: React.FormEvent) {
     e.preventDefault();
-    if (!texto.trim()) return;
+    const contenido = texto.trim();
+    if (!contenido) return;
     setEnviando(true);
+    setTexto("");
+    // Optimistic: agregar mensaje localmente antes de esperar respuesta
+    const tempMsg = {
+      id: `temp-${Date.now()}`,
+      contenido,
+      creadoEn: new Date().toISOString(),
+      autor: { id: yo?.id, nombre: yo?.nombre ?? "Tú", rol: yo?.rol ?? "admin" },
+    };
+    setMensajes((prev) => [...prev, tempMsg]);
     try {
-      await enviarMensajeTicket(id, texto.trim());
-      setTexto("");
-      await cargar();
+      await enviarMensajeTicket(id, contenido);
+      // Reemplaza el optimista con el real
+      await cargarMensajes();
       toast.success("Mensaje enviado");
-    } catch { toast.error("Error al enviar el mensaje"); }
-    finally { setEnviando(false); }
+    } catch {
+      // Quita el optimista si falla
+      setMensajes((prev) => prev.filter((m) => m.id !== tempMsg.id));
+      setTexto(contenido);
+      toast.error("Error al enviar el mensaje");
+    } finally { setEnviando(false); }
   }
 
   async function handleEstado(estado: string) {
     try {
       await cambiarEstadoTicket(id, estado);
-      await cargar();
-      toast.success(`Estado actualizado a "${ESTADOS.find((e) => e.key === estado)?.label}"`);
+      await cargarTicket();
+      toast.success(`Estado: ${ESTADOS.find((e) => e.key === estado)?.label}`);
     } catch { toast.error("Error al cambiar estado"); }
   }
 
   async function handleAsignar(usuarioId: string | null) {
     try {
       await asignarTicket(id, usuarioId);
-      await cargar();
+      await cargarTicket();
       toast.success(usuarioId ? "Ticket asignado" : "Asignación removida");
     } catch { toast.error("Error al asignar ticket"); }
   }
