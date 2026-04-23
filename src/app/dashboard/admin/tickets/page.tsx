@@ -11,6 +11,12 @@ const PRIORIDAD_COLOR: Record<string, string> = {
 const ESTADO_COLOR: Record<string, string> = {
   abierto: "#f59e0b", en_progreso: "var(--verde)", respondido: "#3b82f6", cerrado: "#6b7280",
 };
+const TIPO_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
+  comentario: { label: "Comentario",        icon: "💬", color: "#6B7280" },
+  aporte:     { label: "Aporte",            icon: "💡", color: "#2563EB" },
+  incidencia: { label: "Incidencia",        icon: "⚠️", color: "#D97706" },
+  bug:        { label: "Bug",               icon: "🐛", color: "#DC2626" },
+};
 
 function Chip({ label, color }: { label: string; color: string }) {
   return (
@@ -69,6 +75,7 @@ export default function AdminTicketsPage() {
                   {t.cliente && <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", margin: "0.15rem 0 0" }}>{t.cliente.nombre} · {t.cliente.email}</p>}
                 </div>
                 <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, flexWrap: "wrap" }}>
+                  {t.tipo && (() => { const tc = TIPO_CONFIG[t.tipo] ?? TIPO_CONFIG.comentario; return <Chip label={`${tc.icon} ${tc.label}`} color={tc.color} />; })()}
                   <Chip label={t.prioridad} color={PRIORIDAD_COLOR[t.prioridad] ?? "#888"} />
                   <Chip label={t.estado.replace("_", " ")} color={ESTADO_COLOR[t.estado] ?? "#888"} />
                 </div>

@@ -7,112 +7,54 @@ import LoadingSpinner from "@/components/shared/loading-spinner";
 const headingFont = "'Google Sans', system-ui";
 const bodyFont = "'Outfit', sans-serif";
 
+const TIPO_CONFIG: Record<string, { label: string; sublabel: string; icon: string; color: string; bg: string; border: string }> = {
+  comentario: { label: "Comentario",        sublabel: "Comparte una opinion o nota general",  icon: "💬", color: "#6B7280", bg: "rgba(107,114,128,0.07)", border: "rgba(107,114,128,0.25)" },
+  aporte:     { label: "Aporte / Sugerencia", sublabel: "Propone una mejora o nueva idea",     icon: "💡", color: "#2563EB", bg: "rgba(37,99,235,0.07)",   border: "rgba(37,99,235,0.25)" },
+  incidencia: { label: "Incidencia",         sublabel: "Reporta un problema funcional o de flujo", icon: "⚠️", color: "#D97706", bg: "rgba(217,119,6,0.07)",  border: "rgba(217,119,6,0.25)" },
+  bug:        { label: "Bug / Error técnico", sublabel: "Reporta un error tecnico o de codigo",  icon: "🐛", color: "#DC2626", bg: "rgba(220,38,38,0.07)",   border: "rgba(220,38,38,0.25)" },
+};
+
 const PRIORIDAD_STYLE: Record<string, { bg: string; color: string }> = {
-  alta:  { bg: "rgba(229,62,62,0.1)",   color: "#E53E3E" },
-  media: { bg: "rgba(221,167,32,0.1)",  color: "#D69E2E" },
-  baja:  { bg: "rgba(113,128,150,0.1)", color: "#718096" },
+  alta:  { bg: "rgba(220,38,38,0.1)",    color: "#DC2626" },
+  media: { bg: "rgba(217,119,6,0.1)",    color: "#D97706" },
+  baja:  { bg: "rgba(107,114,128,0.1)",  color: "#6B7280" },
 };
 
 const ESTADO_STYLE: Record<string, { bg: string; color: string; dot: string }> = {
-  abierto:      { bg: "rgba(49,130,206,0.1)",  color: "#3182CE", dot: "#3182CE" },
-  pendiente:    { bg: "rgba(49,130,206,0.1)",  color: "#3182CE", dot: "#3182CE" },
-  en_progreso:  { bg: "rgba(221,167,32,0.1)",  color: "#D69E2E", dot: "#D69E2E" },
-  respondido:   { bg: "rgba(56,161,105,0.1)",  color: "#38A169", dot: "#38A169" },
-  resuelto:     { bg: "rgba(56,161,105,0.1)",  color: "#38A169", dot: "#38A169" },
-  cerrado:      { bg: "rgba(113,128,150,0.1)", color: "#718096", dot: "#718096" },
+  abierto:     { bg: "rgba(37,99,235,0.1)",   color: "#2563EB", dot: "#2563EB" },
+  pendiente:   { bg: "rgba(37,99,235,0.1)",   color: "#2563EB", dot: "#2563EB" },
+  en_progreso: { bg: "rgba(217,119,6,0.1)",   color: "#D97706", dot: "#D97706" },
+  respondido:  { bg: "rgba(22,163,74,0.1)",   color: "#16A34A", dot: "#16A34A" },
+  resuelto:    { bg: "rgba(22,163,74,0.1)",   color: "#16A34A", dot: "#16A34A" },
+  cerrado:     { bg: "rgba(107,114,128,0.1)", color: "#6B7280", dot: "#6B7280" },
 };
 
 function fmt(fecha: string) {
   return new Date(fecha).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function ModalNuevoTicket({ onClose, onCreado }: { onClose: () => void; onCreado: () => void }) {
-  const [form, setForm] = useState({ titulo: "", descripcion: "", prioridad: "media" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    try {
-      await crearTicket(form);
-      onCreado();
-      onClose();
-    } catch (err: any) {
-      setError(err.message ?? "Error al crear ticket");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const inputStyle: React.CSSProperties = {
-    padding: "0.6rem 0.85rem", borderRadius: "8px", fontSize: "0.82rem",
-    border: "1px solid var(--border)", background: "var(--bg-soft)",
-    color: "var(--text-primary)", outline: "none", width: "100%",
-    boxSizing: "border-box", fontFamily: bodyFont,
-  };
-
+function TipoChip({ tipo }: { tipo: string }) {
+  const cfg = TIPO_CONFIG[tipo?.toLowerCase()] ?? TIPO_CONFIG.comentario;
   return (
-    <div
-      style={{ position: "fixed", inset: 0, zIndex: 50, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div style={{ background: "var(--bg)", borderRadius: "16px", padding: "2rem", width: "100%", maxWidth: "480px", border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <h2 style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--text-primary)", margin: 0, fontFamily: headingFont }}>Nuevo ticket</h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.2rem" }}>✕</button>
-        </div>
-
-        {error && (
-          <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid #ef4444", borderRadius: "8px", padding: "0.6rem 0.9rem", fontSize: "0.75rem", color: "#ef4444", fontFamily: bodyFont }}>{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div>
-            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", fontFamily: bodyFont, display: "block", marginBottom: "0.35rem" }}>
-              Asunto <span style={{ color: "#ef4444" }}>*</span>
-            </label>
-            <input required value={form.titulo} onChange={(e) => setForm((f) => ({ ...f, titulo: e.target.value }))} style={inputStyle} placeholder="Describe brevemente el problema" />
-          </div>
-
-          <div>
-            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", fontFamily: bodyFont, display: "block", marginBottom: "0.35rem" }}>
-              Descripcion <span style={{ color: "#ef4444" }}>*</span>
-            </label>
-            <textarea required value={form.descripcion} onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))} rows={4} style={{ ...inputStyle, resize: "vertical" }} placeholder="Describe con detalle el problema o solicitud..." />
-          </div>
-
-          <div>
-            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", fontFamily: bodyFont, display: "block", marginBottom: "0.35rem" }}>Prioridad</label>
-            <select value={form.prioridad} onChange={(e) => setForm((f) => ({ ...f, prioridad: e.target.value }))} style={inputStyle}>
-              <option value="baja">Baja</option>
-              <option value="media">Media</option>
-              <option value="alta">Alta</option>
-            </select>
-          </div>
-
-          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-            <button type="button" onClick={onClose} style={{ padding: "0.55rem 1.2rem", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--bg-soft)", color: "var(--text-secondary)", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", fontFamily: bodyFont }}>
-              Cancelar
-            </button>
-            <button type="submit" disabled={loading} style={{ padding: "0.55rem 1.4rem", borderRadius: "8px", border: "none", background: "var(--verde)", color: "#fff", fontSize: "0.82rem", fontWeight: 600, cursor: "pointer", fontFamily: bodyFont, opacity: loading ? 0.7 : 1 }}>
-              {loading ? "Enviando..." : "Crear ticket"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.2rem 0.55rem", borderRadius: "6px", fontSize: "0.68rem", fontWeight: 600, background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.border}`, fontFamily: bodyFont }}>
+      {cfg.icon} {cfg.label}
+    </span>
   );
 }
 
-type FilterType = "Todos" | string;
+type FilterKey = "todos" | "abierto" | "en_progreso" | "resuelto";
 
 export default function SoportePage() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<FilterType>("Todos");
-  const [modalOpen, setModalOpen] = useState(false);
+  const [filter, setFilter] = useState<FilterKey>("todos");
+
+  // nuevo reporte
+  const [tipoSeleccionado, setTipoSeleccionado] = useState<string | null>(null);
+  const [form, setForm] = useState({ titulo: "", descripcion: "", prioridad: "media" });
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState("");
+  const [exito, setExito] = useState(false);
 
   function load() {
     setLoading(true);
@@ -124,117 +66,234 @@ export default function SoportePage() {
 
   useEffect(() => { load(); }, []);
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tipoSeleccionado) return;
+    setEnviando(true);
+    setError("");
+    try {
+      await crearTicket({ ...form, tipo: tipoSeleccionado });
+      setExito(true);
+      setForm({ titulo: "", descripcion: "", prioridad: "media" });
+      setTipoSeleccionado(null);
+      load();
+      setTimeout(() => setExito(false), 3500);
+    } catch (err: any) {
+      setError(err.message ?? "Error al enviar el reporte");
+    } finally {
+      setEnviando(false);
+    }
+  }
+
   const abiertos   = tickets.filter((t) => t.estado === "abierto" || t.estado === "pendiente").length;
   const enProgreso = tickets.filter((t) => t.estado === "en_progreso").length;
-  const resueltos  = tickets.filter((t) => t.estado === "resuelto" || t.estado === "respondido" || t.estado === "cerrado").length;
+  const resueltos  = tickets.filter((t) => ["resuelto", "respondido", "cerrado"].includes(t.estado)).length;
 
-  const filtered = filter === "Todos" ? tickets : tickets.filter((t) => {
-    if (filter === "Abierto") return t.estado === "abierto" || t.estado === "pendiente";
-    if (filter === "En progreso") return t.estado === "en_progreso";
-    if (filter === "Resuelto") return t.estado === "resuelto" || t.estado === "respondido" || t.estado === "cerrado";
+  const filtered = tickets.filter((t) => {
+    if (filter === "todos") return true;
+    if (filter === "abierto") return t.estado === "abierto" || t.estado === "pendiente";
+    if (filter === "en_progreso") return t.estado === "en_progreso";
+    if (filter === "resuelto") return ["resuelto", "respondido", "cerrado"].includes(t.estado);
     return true;
   });
 
-  const statusFilters = ["Todos", "Abierto", "En progreso", "Resuelto"];
+  const inputStyle: React.CSSProperties = {
+    padding: "0.6rem 0.85rem", borderRadius: "8px", fontSize: "0.82rem",
+    border: "1px solid var(--border)", background: "var(--bg-soft)",
+    color: "var(--text-primary)", outline: "none", width: "100%",
+    boxSizing: "border-box", fontFamily: bodyFont,
+  };
 
   return (
-    <div>
-      {modalOpen && <ModalNuevoTicket onClose={() => setModalOpen(false)} onCreado={load} />}
+    <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
-        <div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.25rem", fontFamily: headingFont }}>Soporte</h1>
-          <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontFamily: bodyFont }}>Tickets y comunicacion con el equipo</p>
-        </div>
-        <button
-          onClick={() => setModalOpen(true)}
-          style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.25rem", borderRadius: "10px", border: "none", background: "var(--verde)", color: "#fff", fontSize: "0.875rem", fontWeight: 600, fontFamily: bodyFont, cursor: "pointer" }}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "16px", height: "16px" }}>
-            <path d="M12 4.5v15m7.5-7.5h-15" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Nuevo ticket
-        </button>
+      <div>
+        <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.25rem", fontFamily: headingFont }}>Reportes & Mensajes</h1>
+        <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", fontFamily: bodyFont }}>Envianos comentarios, sugerencias, incidencias o bugs sobre tu proyecto</p>
       </div>
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem" }}>
         {[
-          { label: "Abiertos",    value: abiertos,   color: "#3182CE", bg: "rgba(49,130,206,0.08)" },
-          { label: "En progreso", value: enProgreso,  color: "#D69E2E", bg: "rgba(221,167,32,0.08)" },
-          { label: "Resueltos",   value: resueltos,   color: "#38A169", bg: "rgba(56,161,105,0.08)" },
+          { label: "Abiertos",    value: abiertos,    color: "#2563EB" },
+          { label: "En progreso", value: enProgreso,  color: "#D97706" },
+          { label: "Resueltos",   value: resueltos,   color: "#16A34A" },
         ].map((s) => (
-          <div key={s.label} style={{ padding: "1.25rem", borderRadius: "14px", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-            <span style={{ fontSize: "2rem", fontWeight: 700, color: s.color, fontFamily: headingFont }}>{loading ? "—" : s.value}</span>
-            <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", fontFamily: bodyFont }}>{s.label}</span>
+          <div key={s.label} style={{ padding: "1.1rem 1.25rem", borderRadius: "14px", background: "var(--bg)", border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+            <span style={{ fontSize: "1.8rem", fontWeight: 700, color: s.color, fontFamily: headingFont, lineHeight: 1 }}>{loading ? "—" : s.value}</span>
+            <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-muted)", fontFamily: bodyFont }}>{s.label}</span>
           </div>
         ))}
       </div>
 
-      {/* Filter tabs */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-        {statusFilters.map((s) => (
-          <button key={s} onClick={() => setFilter(s)} style={{
-            padding: "0.45rem 1rem", borderRadius: "8px", border: "1px solid",
-            borderColor: filter === s ? "var(--verde)" : "var(--border)",
-            background: filter === s ? "rgba(74,139,0,0.1)" : "var(--bg)",
-            color: filter === s ? "var(--verde)" : "var(--text-secondary)",
-            fontSize: "0.82rem", fontWeight: 500, cursor: "pointer", fontFamily: bodyFont,
-          }}>
-            {s}
-          </button>
-        ))}
-      </div>
-
-      {/* Table */}
-      {loading ? (
-        <LoadingSpinner text="Cargando tickets..." />
-      ) : filtered.length === 0 ? (
-        <div style={{ padding: "3rem", textAlign: "center", borderRadius: "16px", border: "1px dashed var(--border)" }}>
-          <p style={{ color: "var(--text-muted)", fontFamily: bodyFont }}>No hay tickets en esta categoria.</p>
+      {/* Nuevo reporte */}
+      <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "16px", overflow: "hidden" }}>
+        <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid var(--border)", background: "var(--bg-soft)" }}>
+          <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-primary)", margin: 0, fontFamily: headingFont }}>Nuevo reporte</p>
+          <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", margin: "0.2rem 0 0", fontFamily: bodyFont }}>Selecciona el tipo y completa el formulario</p>
         </div>
-      ) : (
-        <div style={{ borderRadius: "16px", border: "1px solid var(--border)", background: "var(--bg)", overflow: "hidden" }}>
-          {/* Header */}
-          <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 100px 110px 120px", padding: "0.85rem 1.25rem", borderBottom: "1px solid var(--border)", background: "var(--bg-soft)", gap: "0.75rem" }}>
-            {["#", "Asunto", "Prioridad", "Estado", "Fecha"].map((h) => (
-              <span key={h} style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontFamily: bodyFont }}>{h}</span>
-            ))}
+
+        <div style={{ padding: "1.5rem" }}>
+
+          {/* Exito banner */}
+          {exito && (
+            <div style={{ padding: "0.75rem 1rem", borderRadius: "10px", background: "rgba(22,163,74,0.08)", border: "1px solid #16A34A", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+              <span style={{ fontSize: "1rem" }}>✅</span>
+              <span style={{ fontSize: "0.82rem", fontWeight: 600, color: "#16A34A", fontFamily: bodyFont }}>Reporte enviado correctamente. El equipo lo revisará pronto.</span>
+            </div>
+          )}
+
+          {/* 4 type cards */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
+            {Object.entries(TIPO_CONFIG).map(([key, cfg]) => {
+              const selected = tipoSeleccionado === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setTipoSeleccionado(selected ? null : key)}
+                  style={{
+                    display: "flex", flexDirection: "column", alignItems: "flex-start",
+                    gap: "0.35rem", padding: "0.9rem 1rem", borderRadius: "12px",
+                    border: `2px solid ${selected ? cfg.color : cfg.border}`,
+                    background: selected ? cfg.bg : "var(--bg-soft)",
+                    cursor: "pointer", textAlign: "left", transition: "border-color 0.15s, background 0.15s",
+                  }}
+                >
+                  <span style={{ fontSize: "1.25rem", lineHeight: 1 }}>{cfg.icon}</span>
+                  <span style={{ fontSize: "0.82rem", fontWeight: 700, color: selected ? cfg.color : "var(--text-primary)", fontFamily: headingFont }}>{cfg.label}</span>
+                  <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontFamily: bodyFont, lineHeight: 1.4 }}>{cfg.sublabel}</span>
+                </button>
+              );
+            })}
           </div>
-          {filtered.map((t, idx) => {
-            const ps = PRIORIDAD_STYLE[t.prioridad?.toLowerCase()] ?? PRIORIDAD_STYLE.media;
-            const es = ESTADO_STYLE[t.estado?.toLowerCase()] ?? ESTADO_STYLE.abierto;
-            return (
-              <div key={t.id} style={{
-                display: "grid", gridTemplateColumns: "80px 1fr 100px 110px 120px",
-                padding: "0.9rem 1.25rem", gap: "0.75rem", alignItems: "center",
-                borderBottom: idx < filtered.length - 1 ? "1px solid var(--border-light)" : "none",
-              }}>
-                <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", fontFamily: bodyFont }}>
-                  #{String(t.id).slice(-4).toUpperCase()}
-                </span>
-                <div>
-                  <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-primary)", margin: 0, fontFamily: headingFont }}>{t.titulo}</p>
-                  {t.respuesta && (
-                    <p style={{ fontSize: "0.72rem", color: "var(--verde)", margin: "0.15rem 0 0", fontFamily: bodyFont }}>Respondido por el equipo</p>
-                  )}
-                </div>
-                <span style={{ display: "inline-flex", alignItems: "center", padding: "0.25rem 0.6rem", borderRadius: "6px", fontSize: "0.72rem", fontWeight: 600, background: ps.bg, color: ps.color, fontFamily: bodyFont, width: "fit-content" }}>
-                  {t.prioridad}
-                </span>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.25rem 0.6rem", borderRadius: "6px", fontSize: "0.72rem", fontWeight: 600, background: es.bg, color: es.color, fontFamily: bodyFont, width: "fit-content" }}>
-                  <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: es.dot, flexShrink: 0 }} />
-                  {t.estado?.replace("_", " ")}
-                </span>
-                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontFamily: bodyFont }}>
-                  {fmt(t.creadoEn ?? t.createdAt)}
+
+          {/* Form — visible only when tipo selected */}
+          {tipoSeleccionado && (
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem", paddingTop: "0.25rem", borderTop: `2px solid ${TIPO_CONFIG[tipoSeleccionado].color}30` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", paddingTop: "1rem" }}>
+                <span style={{ fontSize: "1rem" }}>{TIPO_CONFIG[tipoSeleccionado].icon}</span>
+                <span style={{ fontSize: "0.85rem", fontWeight: 700, color: TIPO_CONFIG[tipoSeleccionado].color, fontFamily: headingFont }}>
+                  {TIPO_CONFIG[tipoSeleccionado].label}
                 </span>
               </div>
-            );
-          })}
+
+              {error && (
+                <div style={{ padding: "0.6rem 0.9rem", borderRadius: "8px", background: "rgba(220,38,38,0.08)", border: "1px solid #DC2626", fontSize: "0.75rem", color: "#DC2626", fontFamily: bodyFont }}>
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", fontFamily: bodyFont, marginBottom: "0.35rem" }}>
+                  Asunto <span style={{ color: "#DC2626" }}>*</span>
+                </label>
+                <input
+                  required
+                  value={form.titulo}
+                  onChange={(e) => setForm((f) => ({ ...f, titulo: e.target.value }))}
+                  style={inputStyle}
+                  placeholder="Resume el tema en pocas palabras"
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", fontFamily: bodyFont, marginBottom: "0.35rem" }}>
+                  Descripcion <span style={{ color: "#DC2626" }}>*</span>
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={form.descripcion}
+                  onChange={(e) => setForm((f) => ({ ...f, descripcion: e.target.value }))}
+                  style={{ ...inputStyle, resize: "vertical" }}
+                  placeholder="Describe con detalle..."
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "0.75rem", alignItems: "flex-end" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)", fontFamily: bodyFont, marginBottom: "0.35rem" }}>Prioridad</label>
+                  <select value={form.prioridad} onChange={(e) => setForm((f) => ({ ...f, prioridad: e.target.value }))} style={inputStyle}>
+                    <option value="baja">Baja</option>
+                    <option value="media">Media</option>
+                    <option value="alta">Alta</option>
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  disabled={enviando}
+                  style={{
+                    padding: "0.6rem 1.5rem", borderRadius: "8px", border: "none",
+                    background: TIPO_CONFIG[tipoSeleccionado].color, color: "#fff",
+                    fontSize: "0.82rem", fontWeight: 700, cursor: "pointer",
+                    fontFamily: bodyFont, opacity: enviando ? 0.7 : 1, whiteSpace: "nowrap",
+                  }}
+                >
+                  {enviando ? "Enviando..." : "Enviar reporte"}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* History */}
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+          <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-primary)", margin: 0, fontFamily: headingFont }}>Historial de reportes</p>
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+            {([["todos", "Todos"], ["abierto", "Abiertos"], ["en_progreso", "En progreso"], ["resuelto", "Resueltos"]] as [FilterKey, string][]).map(([key, label]) => (
+              <button key={key} onClick={() => setFilter(key)} style={{
+                padding: "0.35rem 0.85rem", borderRadius: "7px", border: "1px solid",
+                borderColor: filter === key ? "var(--verde)" : "var(--border)",
+                background: filter === key ? "rgba(74,139,0,0.08)" : "var(--bg)",
+                color: filter === key ? "var(--verde)" : "var(--text-secondary)",
+                fontSize: "0.78rem", fontWeight: 500, cursor: "pointer", fontFamily: bodyFont,
+              }}>{label}</button>
+            ))}
+          </div>
+        </div>
+
+        {loading ? (
+          <LoadingSpinner text="Cargando reportes..." />
+        ) : filtered.length === 0 ? (
+          <div style={{ padding: "2.5rem", textAlign: "center", borderRadius: "14px", border: "1px dashed var(--border)" }}>
+            <p style={{ color: "var(--text-muted)", fontFamily: bodyFont, fontSize: "0.85rem" }}>No hay reportes en esta categoría.</p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            {filtered.map((t) => {
+              const ps = PRIORIDAD_STYLE[t.prioridad?.toLowerCase()] ?? PRIORIDAD_STYLE.media;
+              const es = ESTADO_STYLE[t.estado?.toLowerCase()] ?? ESTADO_STYLE.abierto;
+              return (
+                <div key={t.id} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "12px", padding: "1rem 1.25rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", margin: 0, fontFamily: headingFont }}>{t.titulo}</p>
+                      <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", margin: "0.2rem 0 0", fontFamily: bodyFont }}>{fmt(t.creadoEn ?? t.createdAt)}</p>
+                    </div>
+                    <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0, flexWrap: "wrap", alignItems: "center" }}>
+                      {t.tipo && <TipoChip tipo={t.tipo} />}
+                      <span style={{ display: "inline-flex", alignItems: "center", padding: "0.2rem 0.55rem", borderRadius: "6px", fontSize: "0.68rem", fontWeight: 600, background: ps.bg, color: ps.color, fontFamily: bodyFont }}>{t.prioridad}</span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.2rem 0.55rem", borderRadius: "6px", fontSize: "0.68rem", fontWeight: 600, background: es.bg, color: es.color, fontFamily: bodyFont }}>
+                        <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: es.dot, flexShrink: 0 }} />
+                        {t.estado?.replace("_", " ")}
+                      </span>
+                    </div>
+                  </div>
+                  {t.respuesta && (
+                    <div style={{ background: "rgba(22,163,74,0.06)", border: "1px solid rgba(22,163,74,0.3)", borderRadius: "8px", padding: "0.6rem 0.85rem" }}>
+                      <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "#16A34A", margin: "0 0 0.2rem", fontFamily: bodyFont }}>Respuesta del equipo:</p>
+                      <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", margin: 0, fontFamily: bodyFont, lineHeight: 1.5 }}>{t.respuesta}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
