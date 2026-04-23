@@ -246,7 +246,11 @@ export function getAdminTickets() {
 }
 
 export function responderTicket(id: string, respuesta: string) {
-  return apiFetch<any>(`/tickets/${id}`, { method: 'PATCH', body: JSON.stringify({ respuesta, estado: 'respondido' }) });
+  return apiFetch<any>(`/tickets/${id}/responder`, { method: 'PATCH', body: JSON.stringify({ respuesta }) });
+}
+
+export function cerrarTicket(id: string) {
+  return apiFetch<any>(`/tickets/${id}/cerrar`, { method: 'PATCH' });
 }
 
 // ── Admin: Reuniones (todas) ─────────────────────────────────────

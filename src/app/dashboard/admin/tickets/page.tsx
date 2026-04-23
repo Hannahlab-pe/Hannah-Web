@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAdminTickets, responderTicket } from "@/libs/api";
+import { getAdminTickets, responderTicket, cerrarTicket } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
 import PageHeader from "@/components/shared/page-header";
 
@@ -9,7 +9,10 @@ const PRIORIDAD_COLOR: Record<string, string> = {
   baja: "#22c55e", media: "#f59e0b", alta: "#ef4444", urgente: "#dc2626",
 };
 const ESTADO_COLOR: Record<string, string> = {
-  abierto: "#f59e0b", en_progreso: "var(--verde)", respondido: "#3b82f6", cerrado: "#6b7280",
+  abierto: "#f59e0b", en_progreso: "#3b82f6", resuelto: "var(--verde)", cerrado: "#6b7280",
+};
+const ESTADO_LABEL: Record<string, string> = {
+  abierto: "Abierto", en_progreso: "Respondido", resuelto: "Resuelto", cerrado: "Cerrado",
 };
 const TIPO_CONFIG: Record<string, { label: string; color: string }> = {
   comentario: { label: "Comentario", color: "#6B7280" },
@@ -103,6 +106,14 @@ export default function AdminTicketsPage() {
     setEnviando(false);
   }
 
+  async function handleCerrar(id: string) {
+    try {
+      await cerrarTicket(id);
+      setExpandido(null);
+      cargar();
+    } catch { /* silencioso */ }
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <PageHeader
@@ -135,7 +146,7 @@ export default function AdminTicketsPage() {
                 <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, flexWrap: "wrap" }}>
                   {t.tipo && <TipoChipAdmin tipo={t.tipo} />}
                   <Chip label={t.prioridad} color={PRIORIDAD_COLOR[t.prioridad] ?? "#888"} />
-                  <Chip label={t.estado.replace("_", " ")} color={ESTADO_COLOR[t.estado] ?? "#888"} />
+                  <Chip label={ESTADO_LABEL[t.estado] ?? t.estado.replace("_", " ")} color={ESTADO_COLOR[t.estado] ?? "#888"} />
                 </div>
               </div>
               {expandido === t.id && (
@@ -157,9 +168,19 @@ export default function AdminTicketsPage() {
                   )}
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                     <textarea rows={3} placeholder="Escribe una respuesta..." value={respuesta} onChange={(e) => setRespuesta(e.target.value)} style={{ padding: "0.6rem 0.75rem", borderRadius: "8px", fontSize: "0.8rem", border: "1px solid var(--border)", background: "var(--bg-soft)", color: "var(--text-primary)", resize: "vertical", outline: "none" }} />
-                    <button onClick={() => enviarRespuesta(t.id)} disabled={enviando || !respuesta.trim()} style={{ alignSelf: "flex-end", padding: "0.45rem 1rem", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 600, background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer", opacity: (enviando || !respuesta.trim()) ? 0.6 : 1 }}>
-                      {enviando ? "Enviando..." : "Responder"}
-                    </button>
+                    <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+                      {t.estado !== "cerrado" && t.estado !== "resuelto" && (
+                        <button
+                          onClick={() => handleCerrar(t.id)}
+                          style={{ padding: "0.45rem 1rem", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 600, background: "var(--bg-soft)", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer" }}
+                        >
+                          Cerrar ticket
+                        </button>
+                      )}
+                      <button onClick={() => enviarRespuesta(t.id)} disabled={enviando || !respuesta.trim()} style={{ padding: "0.45rem 1rem", borderRadius: "8px", fontSize: "0.78rem", fontWeight: 600, background: "var(--verde)", border: "none", color: "#fff", cursor: "pointer", opacity: (enviando || !respuesta.trim()) ? 0.6 : 1 }}>
+                        {enviando ? "Enviando..." : "Responder"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
