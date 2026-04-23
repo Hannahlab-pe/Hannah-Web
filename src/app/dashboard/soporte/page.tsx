@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-import { getMisTickets, crearTicket } from "@/libs/api";
+import { getMisTickets, crearTicket, getMisProyectos } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
 
 const headingFont = "'Google Sans', system-ui";
@@ -124,17 +124,21 @@ function TipoChip({ tipo }: { tipo: string }) {
 
 // ── Dialog form ───────────────────────────────────────────────────
 function DialogNuevoReporte({
-  open, tipo, onClose, onCreado,
+  open, tipo, proyectos, onClose, onCreado,
 }: {
-  open: boolean; tipo: string | null; onClose: () => void; onCreado: () => void;
+  open: boolean;
+  tipo: string | null;
+  proyectos: { id: string; nombre: string }[];
+  onClose: () => void;
+  onCreado: () => void;
 }) {
-  const [form, setForm] = useState({ titulo: "", descripcion: "", prioridad: "media" });
+  const [form, setForm] = useState({ titulo: "", descripcion: "", prioridad: "media", proyectoId: "" });
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
 
-  // Reset form when tipo changes
+  // Reset form when dialog opens
   useEffect(() => {
-    if (open) { setForm({ titulo: "", descripcion: "", prioridad: "media" }); setError(""); }
+    if (open) { setForm({ titulo: "", descripcion: "", prioridad: "media", proyectoId: "" }); setError(""); }
   }, [open, tipo]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -143,7 +147,11 @@ function DialogNuevoReporte({
     setEnviando(true);
     setError("");
     try {
-      await crearTicket({ ...form, tipo });
+      await crearTicket({
+        ...form,
+        tipo,
+        proyectoId: form.proyectoId || undefined,
+      });
       onCreado();
       onClose();
     } catch (err: any) {
@@ -209,6 +217,20 @@ function DialogNuevoReporte({
 
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                   <div>
+                    <label style={LABEL_STYLE}>Proyecto relacionado</label>
+                    <select
+                      value={form.proyectoId}
+                      onChange={(e) => setForm((f) => ({ ...f, proyectoId: e.target.value }))}
+                      style={INPUT_STYLE}
+                    >
+                      <option value="">— Sin proyecto especifico —</option>
+                      {proyectos.map((p) => (
+                        <option key={p.id} value={p.id}>{p.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
                     <label style={LABEL_STYLE}>Asunto <span style={{ color: "#DC2626" }}>*</span></label>
                     <input
                       required
@@ -272,6 +294,7 @@ type FilterKey = "todos" | "abierto" | "en_progreso" | "resuelto";
 
 export default function SoportePage() {
   const [tickets, setTickets] = useState<any[]>([]);
+  const [proyectos, setProyectos] = useState<{ id: string; nombre: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<FilterKey>("todos");
   const [dialogTipo, setDialogTipo] = useState<string | null>(null);
@@ -285,7 +308,12 @@ export default function SoportePage() {
       .finally(() => setLoading(false));
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    getMisProyectos()
+      .then((ps) => setProyectos(ps.map((p: any) => ({ id: p.id, nombre: p.nombre }))))
+      .catch(() => {});
+  }, []);
 
   function handleCreado() {
     load();
@@ -310,6 +338,7 @@ export default function SoportePage() {
       <DialogNuevoReporte
         open={dialogTipo !== null}
         tipo={dialogTipo}
+        proyectos={proyectos}
         onClose={() => setDialogTipo(null)}
         onCreado={handleCreado}
       />

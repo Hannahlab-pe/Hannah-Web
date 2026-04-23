@@ -142,7 +142,7 @@ export function getMisTickets() {
   return apiFetch<any[]>('/tickets/mis-tickets');
 }
 
-export function crearTicket(data: { titulo: string; descripcion: string; prioridad?: string; tipo?: string }) {
+export function crearTicket(data: { titulo: string; descripcion: string; prioridad?: string; tipo?: string; proyectoId?: string }) {
   return apiFetch<any>('/tickets', { method: 'POST', body: JSON.stringify(data) });
 }
 

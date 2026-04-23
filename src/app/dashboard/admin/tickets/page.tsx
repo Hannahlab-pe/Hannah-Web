@@ -123,6 +123,14 @@ export default function AdminTicketsPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontWeight: 600, fontSize: "0.85rem", color: "var(--text-primary)", margin: 0 }}>{t.titulo}</p>
                   {t.cliente && <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", margin: "0.15rem 0 0" }}>{t.cliente.nombre} · {t.cliente.email}</p>}
+                  {t.proyecto && (
+                    <p style={{ fontSize: "0.7rem", color: "var(--text-secondary)", margin: "0.1rem 0 0", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={10} height={10}>
+                        <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+                      </svg>
+                      {t.proyecto.nombre}
+                    </p>
+                  )}
                 </div>
                 <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, flexWrap: "wrap" }}>
                   {t.tipo && <TipoChipAdmin tipo={t.tipo} />}
@@ -132,6 +140,14 @@ export default function AdminTicketsPage() {
               </div>
               {expandido === t.id && (
                 <div style={{ padding: "0 1.25rem 1.25rem", borderTop: "1px solid var(--border)", paddingTop: "1rem" }}>
+                  {t.proyecto && (
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.25rem 0.65rem", borderRadius: "6px", background: "var(--bg-soft)", border: "1px solid var(--border)", fontSize: "0.72rem", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "0.75rem" }}>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width={12} height={12}>
+                        <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
+                      </svg>
+                      Proyecto: <span style={{ color: "var(--text-primary)" }}>{t.proyecto.nombre}</span>
+                    </div>
+                  )}
                   <p style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginBottom: "1rem", lineHeight: 1.6 }}>{t.descripcion}</p>
                   {t.respuesta && (
                     <div style={{ background: "rgba(74,139,0,0.06)", border: "1px solid var(--verde)", borderRadius: "8px", padding: "0.75rem", marginBottom: "1rem" }}>
