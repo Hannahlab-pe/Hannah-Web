@@ -11,17 +11,67 @@ const PRIORIDAD_COLOR: Record<string, string> = {
 const ESTADO_COLOR: Record<string, string> = {
   abierto: "#f59e0b", en_progreso: "var(--verde)", respondido: "#3b82f6", cerrado: "#6b7280",
 };
-const TIPO_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-  comentario: { label: "Comentario",        icon: "💬", color: "#6B7280" },
-  aporte:     { label: "Aporte",            icon: "💡", color: "#2563EB" },
-  incidencia: { label: "Incidencia",        icon: "⚠️", color: "#D97706" },
-  bug:        { label: "Bug",               icon: "🐛", color: "#DC2626" },
+const TIPO_CONFIG: Record<string, { label: string; color: string }> = {
+  comentario: { label: "Comentario", color: "#6B7280" },
+  aporte:     { label: "Aporte",     color: "#2563EB" },
+  incidencia: { label: "Incidencia", color: "#D97706" },
+  bug:        { label: "Bug",        color: "#DC2626" },
 };
+
+// SVG icons
+function IconChat({ size = 11, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </svg>
+  );
+}
+function IconLightbulb({ size = 11, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+      <path d="M9 21h6M12 3a6 6 0 016 6c0 2.22-1.21 4.16-3 5.2V18H9v-3.8C7.21 13.16 6 11.22 6 9a6 6 0 016-6z" />
+    </svg>
+  );
+}
+function IconAlertTriangle({ size = 11, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  );
+}
+function IconBug({ size = 11, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width={size} height={size}>
+      <path d="M8 2l1.88 1.88M14.12 3.88L16 2M9 7.13v-1a3.003 3.003 0 116 0v1" />
+      <path d="M12 20c-3.3 0-6-2.7-6-6v-3a6 6 0 0112 0v3c0 3.3-2.7 6-6 6z" />
+      <path d="M6 13H2M22 13h-4M6 19l-2 2M18 19l2 2M6 7l-2-2M18 7l2-2" />
+    </svg>
+  );
+}
+function TipoIconSmall({ tipo, size = 11, color = "currentColor" }: { tipo: string; size?: number; color?: string }) {
+  switch (tipo) {
+    case "aporte":     return <IconLightbulb size={size} color={color} />;
+    case "incidencia": return <IconAlertTriangle size={size} color={color} />;
+    case "bug":        return <IconBug size={size} color={color} />;
+    default:           return <IconChat size={size} color={color} />;
+  }
+}
 
 function Chip({ label, color }: { label: string; color: string }) {
   return (
     <span style={{ display: "inline-flex", padding: "0.15rem 0.5rem", borderRadius: "999px", fontSize: "0.65rem", fontWeight: 600, background: `${color}18`, color, border: `1px solid ${color}` }}>
       {label}
+    </span>
+  );
+}
+function TipoChipAdmin({ tipo }: { tipo: string }) {
+  const cfg = TIPO_CONFIG[tipo?.toLowerCase()] ?? TIPO_CONFIG.comentario;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.15rem 0.5rem", borderRadius: "999px", fontSize: "0.65rem", fontWeight: 600, background: `${cfg.color}18`, color: cfg.color, border: `1px solid ${cfg.color}` }}>
+      <TipoIconSmall tipo={tipo} size={10} color={cfg.color} />
+      {cfg.label}
     </span>
   );
 }
@@ -75,7 +125,7 @@ export default function AdminTicketsPage() {
                   {t.cliente && <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", margin: "0.15rem 0 0" }}>{t.cliente.nombre} · {t.cliente.email}</p>}
                 </div>
                 <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, flexWrap: "wrap" }}>
-                  {t.tipo && (() => { const tc = TIPO_CONFIG[t.tipo] ?? TIPO_CONFIG.comentario; return <Chip label={`${tc.icon} ${tc.label}`} color={tc.color} />; })()}
+                  {t.tipo && <TipoChipAdmin tipo={t.tipo} />}
                   <Chip label={t.prioridad} color={PRIORIDAD_COLOR[t.prioridad] ?? "#888"} />
                   <Chip label={t.estado.replace("_", " ")} color={ESTADO_COLOR[t.estado] ?? "#888"} />
                 </div>
