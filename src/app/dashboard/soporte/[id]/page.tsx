@@ -113,7 +113,7 @@ export default function ClienteTicketDetallePage() {
   const cerrado = ticket.estado === "cerrado" || ticket.estado === "resuelto";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", maxWidth: "720px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
@@ -151,7 +151,7 @@ export default function ClienteTicketDetallePage() {
         </div>
 
         {/* Mensajes */}
-        <div style={{ padding: "1rem 1.35rem", display: "flex", flexDirection: "column", gap: "1rem", minHeight: "260px", maxHeight: "440px", overflowY: "auto" }}>
+        <div style={{ padding: "1rem 1.35rem", display: "flex", flexDirection: "column", gap: "1rem", minHeight: "420px", maxHeight: "calc(100vh - 340px)", overflowY: "auto" }}>
           {mensajes.length === 0 ? (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.5rem", padding: "2rem 0" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: 32, height: 32, color: "var(--text-muted)" }}>
