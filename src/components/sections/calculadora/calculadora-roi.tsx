@@ -211,17 +211,25 @@ export const CalculadoraROI = () => {
       })
     );
 
-  const updateProcess = (pid: number, field: keyof Process, value: string) =>
+  const updateProcess = (pid: number, field: keyof Process, value: string) => {
+    if (field === "nombre" && value.length > 80) return;
     setProcesses((prev) =>
       prev.map((p) => (p.id === pid ? { ...p, [field]: value } : p))
     );
+  };
 
   const updateRole = (
     pid: number,
     rid: number,
     field: keyof Role,
     value: string
-  ) =>
+  ) => {
+    if (field === "tipo" && value.length > 50) return;
+    if (field === "cantidad" && value.length > 6) return;
+    if (field === "sueldo" && value.length > 8) return;
+    if (field === "horasMes" && value.length > 4) return;
+    if (field === "horas" && value.length > 4) return;
+
     setProcesses((prev) =>
       prev.map((p) =>
         p.id !== pid
@@ -234,6 +242,7 @@ export const CalculadoraROI = () => {
             }
       )
     );
+  };
 
   // ── Tutorial positioning ──────────────────────────────────────────────────
   const positionTutorial = useCallback((stepIdx: number) => {
@@ -402,6 +411,7 @@ export const CalculadoraROI = () => {
                     <input
                       id={pIdx === 0 ? "first-nombre-input" : undefined}
                       type="text"
+                      maxLength={80}
                       value={proc.nombre}
                       onChange={e => updateProcess(proc.id, "nombre", e.target.value)}
                       placeholder="Ej. Generación de informes mensuales"
@@ -433,6 +443,7 @@ export const CalculadoraROI = () => {
                         <label style={labelStyle}>Tipo de empleado</label>
                         <input
                           type="text"
+                          maxLength={50}
                           value={role.tipo}
                           onChange={e => updateRole(proc.id, role.id, "tipo", e.target.value)}
                           placeholder="Ej. Jefe de área, Asistente, Auxiliar"
@@ -445,7 +456,7 @@ export const CalculadoraROI = () => {
                         <div className="c-field">
                           <label style={labelStyle}>Cantidad</label>
                           <input
-                            type="number" min="0" step="1"
+                            type="number" min="0" max="999999" step="1"
                             value={role.cantidad}
                             onChange={e => updateRole(proc.id, role.id, "cantidad", e.target.value)}
                             placeholder="1"
@@ -457,7 +468,7 @@ export const CalculadoraROI = () => {
                         <div className="c-field">
                           <label style={labelStyle}>Sueldo mensual (S/)</label>
                           <input
-                            type="number" min="0" step="100"
+                            type="number" min="0" max="99999999" step="100"
                             value={role.sueldo}
                             onChange={e => updateRole(proc.id, role.id, "sueldo", e.target.value)}
                             placeholder="3500"
@@ -469,7 +480,7 @@ export const CalculadoraROI = () => {
                         <div className="c-field">
                           <label style={labelStyle}>Horas trabajadas al mes</label>
                           <input
-                            type="number" min="0" step="1"
+                            type="number" min="0" max="9999" step="1"
                             value={role.horasMes}
                             onChange={e => updateRole(proc.id, role.id, "horasMes", e.target.value)}
                             placeholder="160"
@@ -482,7 +493,7 @@ export const CalculadoraROI = () => {
                         <div className="c-field">
                           <label style={labelStyle}>Horas por proyecto</label>
                           <input
-                            type="number" min="0" step="1"
+                            type="number" min="0" max="9999" step="1"
                             value={role.horas}
                             onChange={e => updateRole(proc.id, role.id, "horas", e.target.value)}
                             placeholder="20"
@@ -691,6 +702,7 @@ export const CalculadoraROI = () => {
 
         /* ── Two-column layout ── */
         .c-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 2rem; align-items: start; }
+        .c-grid > * { min-width: 0; }
 
         /* ── Shared typography ── */
         .c-label { font-family: monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 1.25rem; }
@@ -798,7 +810,7 @@ const StatCard = ({
     <p style={{ fontFamily: "monospace", fontSize: 9, letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: 8, color: highlight ? "rgba(255,255,255,0.75)" : "#6b7280" }}>
       {label}
     </p>
-    <p style={{ fontFamily: "monospace", fontSize: 18, fontWeight: 700, lineHeight: 1.2, wordBreak: "break-word", color: highlight ? "#fff" : "#111827" }}>
+    <p style={{ fontFamily: "monospace", fontSize: 18, fontWeight: 700, lineHeight: 1.2, wordBreak: "break-all", color: highlight ? "#fff" : "#111827" }}>
       {value}
     </p>
     <p style={{ fontSize: 11, marginTop: 5, color: highlight ? "rgba(255,255,255,0.75)" : "#374151" }}>{sub}</p>
