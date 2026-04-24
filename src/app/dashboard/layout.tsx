@@ -93,8 +93,21 @@ const menuCliente = [
   },
 ];
 
-const SIDEBAR_W = 240;
-const SIDEBAR_W_COLLAPSED = 68;
+const SIDEBAR_W = 232;
+const SIDEBAR_W_COLLAPSED = 62;
+
+// ── Paleta dark sidebar ───────────────────────────────────────────
+const S = {
+  bg:          "#111318",
+  border:      "rgba(255,255,255,0.07)",
+  textPrimary: "#f1f5f9",
+  textMuted:   "#64748b",
+  textSub:     "#94a3b8",
+  activeGreen: "#7dda40",
+  activeBg:    "rgba(125,218,64,0.1)",
+  hoverBg:     "rgba(255,255,255,0.05)",
+  cardBg:      "rgba(255,255,255,0.04)",
+};
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -131,60 +144,71 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const sidebarContent = (
     <>
-      {/* ── Logo (+ toggle solo cuando expandido) ── */}
+      {/* ── Logo ── */}
       <div style={{
-        padding: collapsed ? "1.1rem 0" : "1.1rem 1rem",
-        display: "flex", alignItems: "center",
+        padding: collapsed ? "0" : "0 1rem",
+        height: "64px", display: "flex", alignItems: "center",
         justifyContent: collapsed ? "center" : "space-between",
-        borderBottom: "1px solid var(--border)",
-        minHeight: "56px",
+        borderBottom: `1px solid ${S.border}`, flexShrink: 0,
       }}>
-        <Link href="/inicio" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.55rem" }}>
-          <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "#111", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
-            <Image src="/images/logos/hannah.png" alt="H" width={18} height={18} style={{ objectFit: "contain" }} />
+        <Link href="/inicio" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.65rem" }}>
+          <div style={{
+            width: "34px", height: "34px", borderRadius: "10px",
+            background: "rgba(255,255,255,0.08)", border: `1px solid ${S.border}`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            overflow: "hidden", flexShrink: 0,
+          }}>
+            <Image src="/images/logos/hannah.png" alt="H" width={22} height={22} style={{ objectFit: "contain" }} />
           </div>
           {!collapsed && (
-            <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-primary)", fontFamily: "'Google Sans', system-ui", whiteSpace: "nowrap" }}>
-              Hannah<span style={{ color: "var(--verde)" }}>Lab</span>
-            </span>
+            <div>
+              <span style={{ fontWeight: 700, fontSize: "1rem", color: S.textPrimary, fontFamily: "'Google Sans', system-ui", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
+                Hannah<span style={{ color: S.activeGreen }}>Lab</span>
+              </span>
+              <p style={{ fontSize: "0.58rem", color: S.textMuted, margin: 0, letterSpacing: "0.04em", fontFamily: "'Outfit', sans-serif" }}>
+                Portal de clientes
+              </p>
+            </div>
           )}
         </Link>
         {!collapsed && (
           <button
             onClick={toggleCollapsed}
-            title="Colapsar sidebar"
+            title="Colapsar"
             style={{
-              background: "var(--bg-soft)", border: "1px solid var(--border)",
+              background: "transparent", border: `1px solid ${S.border}`,
               borderRadius: "7px", cursor: "pointer", padding: "5px",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "var(--text-muted)", transition: "all 0.15s", flexShrink: 0,
+              color: S.textMuted, transition: "all 0.15s", flexShrink: 0,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(74,139,0,0.08)"; e.currentTarget.style.color = "var(--verde)"; e.currentTarget.style.borderColor = "var(--verde)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "var(--bg-soft)"; e.currentTarget.style.color = "var(--text-muted)"; e.currentTarget.style.borderColor = "var(--border)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = S.activeGreen; e.currentTarget.style.color = S.activeGreen; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.color = S.textMuted; }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              style={{ width: "14px", height: "14px" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "13px", height: "13px" }}>
               <path d="M15 19l-7-7 7-7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         )}
       </div>
 
-      {/* ── Menú ── */}
-      <div style={{ flex: 1, padding: collapsed ? "0.75rem 0.5rem" : "0.75rem 0.65rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-        {menuSections.map((section) => (
+      {/* ── Navegación ── */}
+      <div style={{ flex: 1, padding: collapsed ? "0.85rem 0.5rem" : "0.85rem 0.75rem", overflowY: "auto", display: "flex", flexDirection: "column", gap: "0.1rem" }}>
+        {menuSections.map((section, si) => (
           <div key={section.label} style={{ marginBottom: "0.5rem" }}>
             {!collapsed && (
               <p style={{
-                fontSize: "0.58rem", fontWeight: 700, color: "var(--text-muted)",
-                textTransform: "uppercase", letterSpacing: "0.1em",
-                padding: "0 0.5rem", marginBottom: "0.25rem", marginTop: "0.5rem",
+                fontSize: "0.57rem", fontWeight: 700, color: S.textMuted,
+                textTransform: "uppercase", letterSpacing: "0.12em",
+                padding: "0 0.5rem", margin: `${si === 0 ? "0" : "0.75rem"} 0 0.3rem`,
+                fontFamily: "'Outfit', sans-serif",
               }}>
                 {section.label}
               </p>
             )}
-            {collapsed && <div style={{ height: "0.5rem" }} />}
-            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            {collapsed && si > 0 && (
+              <div style={{ height: "1px", background: S.border, margin: "0.5rem 0.25rem" }} />
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: "1px" }}>
               {section.items.map((item) => {
                 const isActive = pathname === item.href;
                 return (
@@ -195,46 +219,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     title={collapsed ? item.label : undefined}
                     style={{
                       display: "flex", alignItems: "center",
-                      gap: collapsed ? 0 : "0.65rem",
+                      gap: collapsed ? 0 : "0.7rem",
                       justifyContent: collapsed ? "center" : "flex-start",
-                      padding: collapsed ? "0.6rem" : "0.55rem 0.65rem",
-                      borderRadius: "10px",
+                      padding: collapsed ? "0.62rem" : "0.52rem 0.7rem",
+                      borderRadius: "9px",
                       textDecoration: "none",
-                      fontSize: "0.8rem",
-                      fontWeight: isActive ? 600 : 500,
-                      transition: "all 0.15s",
-                      color: isActive ? "var(--verde)" : "var(--text-secondary)",
-                      background: isActive
-                        ? "rgba(74,139,0,0.08)"
-                        : "transparent",
-                      boxShadow: isActive ? "inset 0 0 0 1px rgba(74,139,0,0.15)" : "none",
-                      position: "relative",
+                      fontSize: "0.82rem",
+                      fontWeight: isActive ? 600 : 400,
+                      fontFamily: "'Outfit', sans-serif",
+                      transition: "all 0.12s",
+                      color: isActive ? S.activeGreen : S.textSub,
+                      background: isActive ? S.activeBg : "transparent",
                     }}
                     onMouseEnter={(e) => {
                       if (!isActive) {
-                        (e.currentTarget as HTMLAnchorElement).style.background = "var(--bg-soft)";
-                        (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-primary)";
+                        (e.currentTarget as HTMLAnchorElement).style.background = S.hoverBg;
+                        (e.currentTarget as HTMLAnchorElement).style.color = S.textPrimary;
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!isActive) {
                         (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                        (e.currentTarget as HTMLAnchorElement).style.color = "var(--text-secondary)";
+                        (e.currentTarget as HTMLAnchorElement).style.color = S.textSub;
                       }
                     }}
                   >
-                    {/* Indicador activo lateral */}
-                    {isActive && (
-                      <span style={{
-                        position: "absolute", left: 0, top: "20%", bottom: "20%",
-                        width: "3px", borderRadius: "0 3px 3px 0",
-                        background: "var(--verde)",
-                      }} />
-                    )}
-                    <span style={{
-                      display: "flex", color: isActive ? "var(--verde)" : "var(--text-muted)",
-                      transition: "color 0.15s",
-                    }}>
+                    <span style={{ display: "flex", color: "inherit", opacity: isActive ? 1 : 0.7, transition: "opacity 0.12s" }}>
                       {item.icon}
                     </span>
                     {!collapsed && item.label}
@@ -246,77 +256,125 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         ))}
       </div>
 
-      {/* ── Usuario + Logout ── */}
-      <div style={{
-        borderTop: "1px solid var(--border)",
-        padding: collapsed ? "0.75rem 0.5rem" : "0.75rem 1rem",
-        display: "flex", flexDirection: "column", gap: "4px",
-      }}>
+      {/* ── Hannah AI ── */}
+      <div style={{ padding: collapsed ? "0 0.5rem 0.5rem" : "0 0.75rem 0.5rem" }}>
+        <Link
+          href="/dashboard/hannah-ai"
+          title={collapsed ? "Hannah AI" : undefined}
+          className="hannah-ai-btn"
+          style={{
+            display: "flex", alignItems: "center",
+            gap: collapsed ? 0 : "0.65rem",
+            justifyContent: collapsed ? "center" : "flex-start",
+            padding: collapsed ? "0.62rem" : "0.6rem 0.85rem",
+            borderRadius: "10px",
+            textDecoration: "none",
+            position: "relative", overflow: "hidden",
+            border: "1px solid rgba(255,255,255,0.12)",
+            transition: "opacity 0.15s, transform 0.15s",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.88"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
+        >
+          {/* Fondo aurora animado */}
+          <span className="aurora-bg" aria-hidden="true" />
+          {/* Icono */}
+          <span style={{ position: "relative", display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.6" style={{ width: "17px", height: "17px" }}>
+              <defs>
+                <linearGradient id="ai-icon-g" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#86efac" />
+                  <stop offset="100%" stopColor="#4ade80" />
+                </linearGradient>
+              </defs>
+              <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" stroke="url(#ai-icon-g)" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" stroke="url(#ai-icon-g)" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+          {!collapsed && (
+            <span style={{ position: "relative", fontSize: "0.82rem", fontWeight: 700, color: "#fff", fontFamily: "'Outfit', sans-serif", letterSpacing: "0.01em" }}>
+              Hannah AI
+            </span>
+          )}
+          {!collapsed && (
+            <span style={{ position: "relative", marginLeft: "auto", fontSize: "0.52rem", fontWeight: 700, color: "rgba(255,255,255,0.7)", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.18)", borderRadius: "4px", padding: "0.08rem 0.4rem", letterSpacing: "0.06em" }}>
+              BETA
+            </span>
+          )}
+        </Link>
+      </div>
 
-        {/* Botón expandir (solo cuando colapsado) */}
+      {/* ── Usuario ── */}
+      <div style={{
+        padding: collapsed ? "0.75rem 0.5rem" : "0.75rem",
+        borderTop: `1px solid ${S.border}`,
+        display: "flex", flexDirection: "column", gap: "6px",
+      }}>
+        {/* Expandir cuando colapsado */}
         {collapsed && (
           <button
             onClick={toggleCollapsed}
-            title="Expandir sidebar"
+            title="Expandir"
             style={{
               display: "flex", alignItems: "center", justifyContent: "center",
               padding: "0.5rem", borderRadius: "8px",
-              background: "var(--bg-soft)", border: "1px solid var(--border)",
-              cursor: "pointer", color: "var(--text-muted)", transition: "all 0.15s",
-              marginBottom: "4px",
+              background: "transparent", border: `1px solid ${S.border}`,
+              cursor: "pointer", color: S.textMuted, transition: "all 0.15s", marginBottom: "4px",
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(74,139,0,0.08)"; e.currentTarget.style.color = "var(--verde)"; e.currentTarget.style.borderColor = "var(--verde)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "var(--bg-soft)"; e.currentTarget.style.color = "var(--text-muted)"; e.currentTarget.style.borderColor = "var(--border)"; }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = S.activeGreen; e.currentTarget.style.color = S.activeGreen; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.color = S.textMuted; }}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-              style={{ width: "14px", height: "14px" }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: "13px", height: "13px" }}>
               <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         )}
 
-        {/* Perfil de usuario */}
+        {/* Tarjeta de usuario */}
         <Link
           href="/dashboard/perfil"
+          title={collapsed ? (usuario?.nombre ?? "Perfil") : undefined}
           style={{
             textDecoration: "none",
             display: "flex", alignItems: "center",
-            gap: collapsed ? 0 : "0.6rem",
+            gap: collapsed ? 0 : "0.65rem",
             justifyContent: collapsed ? "center" : "flex-start",
-            padding: collapsed ? "0.5rem" : "0.5rem 0.4rem",
+            padding: collapsed ? "0.5rem" : "0.6rem 0.65rem",
             borderRadius: "10px",
+            background: S.cardBg,
+            border: `1px solid ${S.border}`,
             transition: "background 0.15s",
           }}
-          title={collapsed ? (usuario?.nombre ?? "Perfil") : undefined}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "var(--bg-soft)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(255,255,255,0.07)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = S.cardBg; }}
         >
           <div style={{
-            width: "30px", height: "30px", borderRadius: "50%",
+            width: "28px", height: "28px", borderRadius: "50%",
             background: "var(--verde)", display: "flex", alignItems: "center",
-            justifyContent: "center", fontSize: "0.68rem", fontWeight: 700,
+            justifyContent: "center", fontSize: "0.7rem", fontWeight: 700,
             color: "#fff", flexShrink: 0,
           }}>
             {inicial}
           </div>
           {!collapsed && (
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-primary)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                <p style={{ fontSize: "0.78rem", fontWeight: 600, color: S.textPrimary, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {usuario?.nombre ?? "..."}
                 </p>
                 {(isAdmin || isSubadmin) && (
                   <span style={{
                     flexShrink: 0,
-                    background: "rgba(74,139,0,0.08)", border: "1px solid rgba(74,139,0,0.3)",
-                    borderRadius: "4px", padding: "0.1rem 0.4rem",
-                    fontSize: "0.52rem", fontWeight: 700, color: "var(--verde)", textTransform: "uppercase", letterSpacing: "0.07em",
+                    background: "rgba(125,218,64,0.12)", border: "1px solid rgba(125,218,64,0.25)",
+                    borderRadius: "4px", padding: "0.08rem 0.35rem",
+                    fontSize: "0.5rem", fontWeight: 700, color: S.activeGreen,
+                    textTransform: "uppercase", letterSpacing: "0.08em",
                   }}>
                     {isAdmin ? "Admin" : "Sub"}
                   </span>
                 )}
               </div>
-              <p style={{ fontSize: "0.6rem", color: "var(--text-muted)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <p style={{ fontSize: "0.6rem", color: S.textMuted, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {usuario?.email ?? ""}
               </p>
             </div>
@@ -331,16 +389,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             display: "flex", alignItems: "center",
             gap: collapsed ? 0 : "0.5rem",
             justifyContent: collapsed ? "center" : "flex-start",
-            padding: collapsed ? "0.5rem" : "0.45rem 0.55rem",
-            borderRadius: "10px", fontSize: "0.75rem", fontWeight: 500,
-            color: "var(--text-muted)", transition: "all 0.15s",
+            padding: collapsed ? "0.45rem" : "0.42rem 0.65rem",
+            borderRadius: "8px", fontSize: "0.75rem", fontWeight: 500,
+            fontFamily: "'Outfit', sans-serif",
+            color: S.textMuted, transition: "all 0.15s",
             background: "transparent", border: "none", cursor: "pointer", width: "100%",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.color = "#ef4444"; e.currentTarget.style.background = "rgba(239,68,68,0.06)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; e.currentTarget.style.background = "transparent"; }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.background = "rgba(248,113,113,0.08)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = S.textMuted; e.currentTarget.style.background = "transparent"; }}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
-            style={{ width: "16px", height: "16px", flexShrink: 0 }}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"
+            style={{ width: "15px", height: "15px", flexShrink: 0 }}>
             <path d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           {!collapsed && "Cerrar sesión"}
@@ -359,14 +418,79 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* ── Aurora / lava lamp animation ── */
+        @keyframes aurora-shift {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes aurora-blob1 {
+          0%, 100% { transform: translate(0%, 0%) scale(1); }
+          33%       { transform: translate(30%, -20%) scale(1.2); }
+          66%       { transform: translate(-15%, 25%) scale(0.9); }
+        }
+        @keyframes aurora-blob2 {
+          0%, 100% { transform: translate(0%, 0%) scale(1); }
+          33%       { transform: translate(-25%, 20%) scale(0.85); }
+          66%       { transform: translate(20%, -15%) scale(1.15); }
+        }
+        @keyframes aurora-blob3 {
+          0%, 100% { transform: translate(0%, 0%) scale(1); }
+          50%       { transform: translate(15%, 30%) scale(1.1); }
+        }
+        .aurora-bg {
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          overflow: hidden;
+          z-index: 0;
+        }
+        .aurora-bg::before,
+        .aurora-bg::after,
+        .hannah-ai-btn::before {
+          content: '';
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(14px);
+          opacity: 0.85;
+        }
+        .aurora-bg::before {
+          width: 90px; height: 70px;
+          background: radial-gradient(circle, #4ade80, #166534);
+          top: -20px; left: -15px;
+          animation: aurora-blob1 5s ease-in-out infinite;
+        }
+        .aurora-bg::after {
+          width: 80px; height: 65px;
+          background: radial-gradient(circle, #86efac, #14532d);
+          bottom: -20px; right: -10px;
+          animation: aurora-blob2 6s ease-in-out infinite;
+        }
+        .hannah-ai-btn::before {
+          content: '';
+          position: absolute;
+          width: 70px; height: 55px;
+          background: radial-gradient(circle, #22c55e, #052e16);
+          top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
+          filter: blur(16px);
+          opacity: 0.5;
+          animation: aurora-blob3 4s ease-in-out infinite;
+          z-index: 0;
+          border-radius: 50%;
+        }
+        .hannah-ai-btn {
+          background: #050a05;
+        }
       `}</style>
 
       {/* ===== SIDEBAR DESKTOP ===== */}
       <aside style={{
         width: `${sidebarW}px`,
         display: "flex", flexDirection: "column",
-        background: "var(--bg)",
-        borderRight: "1px solid var(--border)",
+        background: S.bg,
+        borderRight: `1px solid ${S.border}`,
         flexShrink: 0,
         position: "fixed", top: 0, bottom: 0, left: 0, zIndex: 30,
         transition: "width 0.25s cubic-bezier(0.4,0,0.2,1)",
@@ -378,16 +502,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ===== MOBILE HEADER ===== */}
       <div className="lg:!hidden" style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 40,
-        background: "var(--bg)", borderBottom: "1px solid var(--border)",
-        padding: "0.7rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: S.bg, borderBottom: `1px solid ${S.border}`,
+        padding: "0 1rem", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between",
       }}>
-        <Link href="/inicio" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <div style={{ width: "26px", height: "26px", borderRadius: "6px", background: "#111", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-            <Image src="/images/logos/hannah.png" alt="H" width={16} height={16} style={{ objectFit: "contain" }} />
+        <Link href="/inicio" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <div style={{ width: "30px", height: "30px", borderRadius: "8px", background: "rgba(255,255,255,0.08)", border: `1px solid ${S.border}`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <Image src="/images/logos/hannah.png" alt="H" width={19} height={19} style={{ objectFit: "contain" }} />
           </div>
-          <span style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)" }}>Dashboard</span>
+          <span style={{ fontWeight: 700, fontSize: "0.92rem", color: S.textPrimary, fontFamily: "'Google Sans', system-ui" }}>
+            Hannah<span style={{ color: S.activeGreen }}>Lab</span>
+          </span>
         </Link>
-        <button onClick={() => setMobileOpen(!mobileOpen)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", padding: "4px" }}>
+        <button onClick={() => setMobileOpen(!mobileOpen)} style={{ background: "none", border: "none", cursor: "pointer", color: S.textSub, padding: "4px" }}>
           <svg style={{ width: "20px", height: "20px" }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
           </svg>
@@ -400,8 +526,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div onClick={() => setMobileOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 38, background: "rgba(0,0,0,0.4)" }} />
           <aside style={{
             position: "fixed", top: 0, bottom: 0, left: 0, zIndex: 39,
-            width: `${SIDEBAR_W}px`, background: "var(--bg)",
-            borderRight: "1px solid var(--border)",
+            width: `${SIDEBAR_W}px`, background: S.bg,
+            borderRight: `1px solid ${S.border}`,
             display: "flex", flexDirection: "column",
           }}>
             {sidebarContent}

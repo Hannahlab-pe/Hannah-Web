@@ -310,6 +310,8 @@ export function crearReunion(data: {
   fecha: string;
   duracionMinutos?: number;
   linkMeet?: string;
+  descripcion?: string;
+  proyectoId?: string;
   clienteId: string;
 }) {
   return apiFetch<any>('/reuniones', { method: 'POST', body: JSON.stringify(data) });
