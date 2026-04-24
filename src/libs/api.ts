@@ -37,6 +37,7 @@ export interface UsuarioSession {
   rol: 'admin' | 'subadmin' | 'cliente';
   empresa?: string;
   telefono?: string;
+  clientePrincipal?: { id: string; nombre: string; email: string } | null;
 }
 
 export interface LoginResponse {
@@ -164,6 +165,18 @@ export function getPerfil() {
   return apiFetch<UsuarioSession>('/auth/perfil');
 }
 
+export function getMiEquipo() {
+  return apiFetch<UsuarioSession[]>('/auth/mi-equipo');
+}
+
+export function actualizarPerfil(data: { nombre?: string; telefono?: string; empresa?: string }) {
+  return apiFetch<UsuarioSession>('/auth/perfil', { method: 'PATCH', body: JSON.stringify(data) });
+}
+
+export function cambiarPassword(data: { passwordActual: string; passwordNueva: string }) {
+  return apiFetch<{ ok: boolean }>('/auth/cambiar-password', { method: 'PATCH', body: JSON.stringify(data) });
+}
+
 // ── Admin: Clientes ───────────────────────────────────────────────
 
 export function getClientes() {
@@ -207,6 +220,18 @@ export function crearMiembro(data: {
 
 export function toggleClienteActivo(id: string, activo: boolean) {
   return apiFetch<UsuarioSession>(`/usuarios/${id}`, { method: 'PATCH', body: JSON.stringify({ activo }) });
+}
+
+export function getMiembrosCliente(clienteId: string) {
+  return apiFetch<UsuarioSession[]>(`/usuarios/${clienteId}/miembros`);
+}
+
+export function crearMiembroCliente(clienteId: string, data: { nombre: string; email: string; password: string; telefono?: string }) {
+  return apiFetch<UsuarioSession>(`/usuarios/${clienteId}/miembros`, { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function eliminarMiembroCliente(clienteId: string, miembroId: string) {
+  return apiFetch<void>(`/usuarios/${clienteId}/miembros/${miembroId}`, { method: 'DELETE' });
 }
 
 export function getProyectosPorCliente(clienteId: string) {

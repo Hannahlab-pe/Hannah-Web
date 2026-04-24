@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, Fragment } from "react";
+import { useState, useEffect, useCallback, Fragment, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Dialog, Transition } from "@headlessui/react";
-import { getCliente, getProyectosPorCliente, getClientes, crearProyecto, type UsuarioSession } from "@/libs/api";
+import { getCliente, getProyectosPorCliente, getClientes, crearProyecto, getMiembrosCliente, crearMiembroCliente, eliminarMiembroCliente, type UsuarioSession } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
 import PageHeader from "@/components/shared/page-header";
 
@@ -163,6 +163,126 @@ function ModalNuevoProyecto({ open, onClose, onCreado, clienteId, clienteNombre 
   );
 }
 
+// ── Modal añadir miembro ──────────────────────────────────────────
+function ModalAnadirMiembro({ open, onClose, onCreado, clienteId }: {
+  open: boolean;
+  onClose: () => void;
+  onCreado: () => void;
+  clienteId: string;
+}) {
+  const [nombre, setNombre] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const nombreRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+      setNombre(""); setEmail(""); setPassword(""); setTelefono(""); setError("");
+      setTimeout(() => nombreRef.current?.focus(), 80);
+    }
+  }, [open]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nombre.trim() || !email.trim() || !password.trim()) {
+      setError("Nombre, email y contraseña son obligatorios");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      await crearMiembroCliente(clienteId, {
+        nombre: nombre.trim(),
+        email: email.trim(),
+        password: password.trim(),
+        telefono: telefono.trim() || undefined,
+      });
+      onCreado();
+      onClose();
+    } catch (err: any) {
+      setError(err.message ?? "Error al crear miembro");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Transition appear show={open} as={Fragment}>
+      <Dialog as="div" style={{ position: "relative", zIndex: 50 }} onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-200" enterFrom="opacity-0" enterTo="opacity-100"
+          leave="ease-in duration-150" leaveFrom="opacity-100" leaveTo="opacity-0"
+        >
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+        </Transition.Child>
+
+        <div style={{ position: "fixed", inset: 0, overflowY: "auto" }}>
+          <div style={{ display: "flex", minHeight: "100%", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-200" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100"
+              leave="ease-in duration-150" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel style={{ width: "100%", maxWidth: "480px", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "16px", padding: "2rem", display: "flex", flexDirection: "column", gap: "1.1rem", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                  <div>
+                    <Dialog.Title style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
+                      Añadir miembro del equipo
+                    </Dialog.Title>
+                    <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", margin: "0.2rem 0 0" }}>
+                      Este usuario verá los mismos proyectos y tickets que el cliente.
+                    </p>
+                  </div>
+                  <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "1.2rem", lineHeight: 1 }}>✕</button>
+                </div>
+
+                {error && (
+                  <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid #ef4444", borderRadius: "8px", padding: "0.6rem 0.9rem", fontSize: "0.75rem", color: "#ef4444" }}>
+                    {error}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                  <div>
+                    <label style={LBL}>Nombre completo <span style={{ color: "#ef4444" }}>*</span></label>
+                    <input ref={nombreRef} required type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: María García" style={INP} />
+                  </div>
+                  <div>
+                    <label style={LBL}>Email <span style={{ color: "#ef4444" }}>*</span></label>
+                    <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="maria@empresa.com" style={INP} />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                    <div>
+                      <label style={LBL}>Contraseña <span style={{ color: "#ef4444" }}>*</span></label>
+                      <input required type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Mín. 8 caracteres" style={INP} />
+                    </div>
+                    <div>
+                      <label style={LBL}>Teléfono</label>
+                      <input type="text" value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+51 999 999 999" style={INP} />
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.25rem" }}>
+                    <button type="button" onClick={onClose} style={{ flex: 1, padding: "0.6rem", borderRadius: "8px", fontSize: "0.8rem", border: "1px solid var(--border)", background: "transparent", cursor: "pointer", color: "var(--text-secondary)", fontWeight: 500 }}>
+                      Cancelar
+                    </button>
+                    <button type="submit" disabled={loading} style={{ flex: 2, padding: "0.6rem", borderRadius: "8px", fontSize: "0.82rem", background: "var(--verde)", border: "none", color: "#fff", fontWeight: 600, cursor: loading ? "wait" : "pointer", opacity: loading ? 0.7 : 1 }}>
+                      {loading ? "Creando..." : "Crear miembro"}
+                    </button>
+                  </div>
+                </form>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
+        </div>
+      </Dialog>
+    </Transition>
+  );
+}
+
 const ESTADO_LABELS: Record<string, { label: string; color: string }> = {
   pendiente:   { label: "Pendiente",   color: "#f59e0b" },
   en_progreso: { label: "En progreso", color: "var(--verde)" },
@@ -181,24 +301,41 @@ export default function ClienteDetallePage() {
 
   const [cliente, setCliente] = useState<any>(null);
   const [proyectos, setProyectos] = useState<any[]>([]);
+  const [miembros, setMiembros] = useState<UsuarioSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modalProyecto, setModalProyecto] = useState(false);
+  const [modalMiembro, setModalMiembro] = useState(false);
+  const [eliminandoMiembro, setEliminandoMiembro] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
     try {
-      const [cli, projs] = await Promise.all([
+      const [cli, projs, mbs] = await Promise.all([
         getCliente(id),
         getProyectosPorCliente(id),
+        getMiembrosCliente(id),
       ]);
       setCliente(cli);
       setProyectos(projs);
+      setMiembros(mbs);
     } catch (e: any) {
       setError(e.message ?? "Error al cargar");
     } finally {
       setLoading(false);
     }
   }, [id]);
+
+  async function handleEliminarMiembro(miembroId: string) {
+    setEliminandoMiembro(miembroId);
+    try {
+      await eliminarMiembroCliente(id, miembroId);
+      setMiembros((prev) => prev.filter((m) => m.id !== miembroId));
+    } catch {
+      // ignorar silenciosamente — el usuario seguirá en la lista
+    } finally {
+      setEliminandoMiembro(null);
+    }
+  }
 
   useEffect(() => { cargar(); }, [cargar]);
 
@@ -369,12 +506,78 @@ export default function ClienteDetallePage() {
         )}
       </div>
 
+      {/* Equipo del cliente */}
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <h2 style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
+              Equipo del cliente
+            </h2>
+            <span style={{ fontSize: "0.65rem", fontWeight: 700, padding: "0.15rem 0.55rem", borderRadius: "999px", background: "var(--bg-soft)", border: "1px solid var(--border)", color: "var(--text-muted)" }}>
+              {miembros.length}
+            </span>
+          </div>
+          <button
+            onClick={() => setModalMiembro(true)}
+            style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.45rem 0.9rem", borderRadius: "8px", fontSize: "0.78rem", background: "var(--bg)", border: "1px solid var(--border)", color: "var(--text-primary)", fontWeight: 600, cursor: "pointer" }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: "13px", height: "13px" }}>
+              <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+            </svg>
+            Añadir miembro
+          </button>
+        </div>
+
+        {miembros.length === 0 ? (
+          <div style={{ padding: "2rem", textAlign: "center", border: "1px dashed var(--border)", borderRadius: "14px" }}>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.82rem", margin: 0 }}>
+              Sin miembros adicionales. Solo el cliente principal tiene acceso.
+            </p>
+          </div>
+        ) : (
+          <div style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px", overflow: "hidden" }}>
+            {miembros.map((m, i) => (
+              <div key={m.id} style={{ display: "flex", alignItems: "center", gap: "0.85rem", padding: "0.9rem 1.25rem", borderBottom: i < miembros.length - 1 ? "1px solid var(--border)" : "none" }}>
+                {/* Avatar */}
+                <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "var(--bg-soft)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "0.82rem", color: "var(--text-secondary)", flexShrink: 0 }}>
+                  {m.nombre.charAt(0).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>{m.nombre}</p>
+                  <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", margin: 0 }}>{m.email}{m.telefono ? ` · ${m.telefono}` : ""}</p>
+                </div>
+                <span style={{ fontSize: "0.65rem", fontWeight: 600, padding: "0.2rem 0.55rem", borderRadius: "6px", background: "rgba(74,139,0,0.08)", color: "var(--verde)", border: "1px solid rgba(74,139,0,0.15)", flexShrink: 0 }}>
+                  Miembro
+                </span>
+                <button
+                  onClick={() => handleEliminarMiembro(m.id)}
+                  disabled={eliminandoMiembro === m.id}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: eliminandoMiembro === m.id ? "var(--text-muted)" : "#ef4444", padding: "0.25rem", borderRadius: "6px", flexShrink: 0, opacity: eliminandoMiembro === m.id ? 0.5 : 1 }}
+                  title="Eliminar miembro"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: "16px", height: "16px" }}>
+                    <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       <ModalNuevoProyecto
         open={modalProyecto}
         onClose={() => setModalProyecto(false)}
         onCreado={cargar}
         clienteId={id}
         clienteNombre={cliente?.nombre ?? ""}
+      />
+
+      <ModalAnadirMiembro
+        open={modalMiembro}
+        onClose={() => setModalMiembro(false)}
+        onCreado={cargar}
+        clienteId={id}
       />
     </div>
   );
