@@ -83,14 +83,21 @@ function Burbuja({ msg, toolEvent }: { msg: Mensaje; toolEvent?: ToolEvent | nul
           wordBreak: "break-word",
         }}>
           {msg.loading ? (
-            <span style={{ display: "inline-flex", gap: "3px", alignItems: "center" }}>
-              {[0, 1, 2].map(i => (
-                <span key={i} style={{
-                  width: "5px", height: "5px", borderRadius: "50%",
-                  background: "#4ade80", display: "inline-block",
-                  animation: `bounce 1.2s ${i * 0.2}s ease-in-out infinite`,
-                }} />
-              ))}
+            <span style={{ display: "inline-flex", gap: "0.5rem", alignItems: "center" }}>
+              <span style={{ display: "inline-flex", gap: "3px", alignItems: "center" }}>
+                {[0, 1, 2].map(i => (
+                  <span key={i} style={{
+                    width: "5px", height: "5px", borderRadius: "50%",
+                    background: "#4ade80", display: "inline-block",
+                    animation: `bounce 1.2s ${i * 0.2}s ease-in-out infinite`,
+                  }} />
+                ))}
+              </span>
+              {!(toolEvent && !toolEvent.done) && (
+                <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontStyle: "italic" }}>
+                  Pensando…
+                </span>
+              )}
             </span>
           ) : (
             <MdContent content={msg.content} isUser={isUser} />
@@ -125,12 +132,18 @@ function MdContent({ content, isUser }: { content: string; isUser: boolean }) {
 }
 
 // ── Página principal ──────────────────────────────────────────────
+// Genera un ID único por sesión de chat (se resetea al montar la página)
+function genSessionId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
 export default function HannahAIPage() {
   const [visible, setVisible] = useState(false);
   const [input, setInput] = useState("");
   const [mensajes, setMensajes] = useState<Mensaje[]>([]);
   const [cargando, setCargando] = useState(false);
   const [toolEvent, setToolEvent] = useState<ToolEvent | null>(null);
+  const sessionId = useRef(genSessionId()); // nuevo session cada vez que se monta la página
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const isFirstMessage = mensajes.length === 0;
@@ -164,7 +177,7 @@ export default function HannahAIPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ message: texto.trim() }),
+        body: JSON.stringify({ message: texto.trim(), session_id: sessionId.current }),
       });
 
       if (!res.ok) throw new Error(`Error ${res.status}`);
@@ -172,12 +185,6 @@ export default function HannahAIPage() {
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let aiContent = "";
-
-      // Reemplaza el loading msg con el real
-      setMensajes(prev => [
-        ...prev.slice(0, -1),
-        { role: "assistant", content: "" },
-      ]);
 
       while (true) {
         const { done, value } = await reader.read();
@@ -193,6 +200,7 @@ export default function HannahAIPage() {
 
             if (event.type === "token") {
               aiContent += event.content;
+              // Al primer token, reemplazamos el bubble loading por uno con contenido real.
               setMensajes(prev => [
                 ...prev.slice(0, -1),
                 { role: "assistant", content: aiContent },
@@ -364,7 +372,7 @@ export default function HannahAIPage() {
       <div style={{
         position: "fixed", bottom: 0, right: 0,
         left: "232px",
-        padding: "1rem 2rem 1.5rem",
+        padding: "0.65rem 2rem 1rem",
         background: "linear-gradient(to top, var(--bg-soft) 80%, transparent)",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(16px)",
@@ -385,18 +393,18 @@ export default function HannahAIPage() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Escribe tu pregunta a Hannah AI…"
-            rows={3}
+            rows={2}
             disabled={cargando}
             style={{
-              width: "100%", padding: "1rem 1.1rem 0.5rem",
+              width: "100%", padding: "0.65rem 1.1rem 0.35rem",
               background: "transparent", border: "none", outline: "none",
               fontSize: "0.88rem", color: "var(--text-primary)",
               fontFamily: "'Outfit', sans-serif", resize: "none",
-              boxSizing: "border-box", lineHeight: 1.6,
+              boxSizing: "border-box", lineHeight: 1.5,
               opacity: cargando ? 0.6 : 1,
             }}
           />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.4rem 0.75rem 0.75rem 1.1rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.3rem 0.75rem 0.55rem 1.1rem" }}>
             <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", fontFamily: "'Outfit', sans-serif" }}>
               Enter para enviar · Shift+Enter nueva línea
             </span>
