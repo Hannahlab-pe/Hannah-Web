@@ -584,11 +584,11 @@ export default function ProyectoPage() {
       )}
 
       {view === "calendario" && (
-        <CalendarioView implementaciones={implementaciones} />
+        <CalendarioView implementaciones={implementaciones} onEditarTarea={abrirEditTarea} />
       )}
 
       {view === "gantt" && (
-        <GanttView implementaciones={implementaciones} />
+        <GanttView implementaciones={implementaciones} onEditarTarea={abrirEditTarea} />
       )}
 
       {/* ── Modal nueva fase ── */}

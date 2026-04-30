@@ -10,11 +10,21 @@ const PRIORIDAD_COLOR: Record<string, string> = {
 const DIAS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
-interface CalendarioViewProps {
-  implementaciones: any[];
+// Builds "YYYY-MM-DD" using LOCAL timezone (avoids UTC midnight shifting the day)
+function localDateKey(dateStr: string): string {
+  const d = new Date(dateStr);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
-export default function CalendarioView({ implementaciones }: CalendarioViewProps) {
+interface CalendarioViewProps {
+  implementaciones: any[];
+  onEditarTarea: (tarea: any) => void;
+}
+
+export default function CalendarioView({ implementaciones, onEditarTarea }: CalendarioViewProps) {
   const today = new Date();
   const [mes, setMes] = useState(today.getMonth());
   const [anio, setAnio] = useState(today.getFullYear());
@@ -28,15 +38,14 @@ export default function CalendarioView({ implementaciones }: CalendarioViewProps
     else setMes((m) => m + 1);
   }
 
-  // Build map: "YYYY-MM-DD" → tareas[]
+  // Build map: "YYYY-MM-DD" (local) → tareas[]
   const tareasPorDia: Record<string, any[]> = {};
   for (const impl of implementaciones) {
     for (const t of (impl.tareas ?? [])) {
       if (t.fechaLimite) {
-        // Store as local date key to avoid timezone offset shifting the day
-        const raw = t.fechaLimite.split("T")[0]; // "YYYY-MM-DD"
-        if (!tareasPorDia[raw]) tareasPorDia[raw] = [];
-        tareasPorDia[raw].push({ ...t, faseName: impl.nombre });
+        const key = localDateKey(t.fechaLimite);
+        if (!tareasPorDia[key]) tareasPorDia[key] = [];
+        tareasPorDia[key].push({ ...t, faseName: impl.nombre });
       }
     }
   }
@@ -147,14 +156,18 @@ export default function CalendarioView({ implementaciones }: CalendarioViewProps
                             <div
                               key={t.id}
                               title={`${t.titulo} · ${t.faseName}`}
+                              onClick={() => onEditarTarea(t)}
                               style={{
                                 fontSize: "0.62rem", fontWeight: 600,
                                 padding: "0.15rem 0.35rem", borderRadius: "4px",
                                 background: `${color}18`, color: color,
                                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                                cursor: "default",
+                                cursor: "pointer",
                                 borderLeft: `2px solid ${color}`,
+                                transition: "background 0.1s",
                               }}
+                              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = `${color}35`; }}
+                              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = `${color}18`; }}
                             >
                               {t.titulo}
                             </div>

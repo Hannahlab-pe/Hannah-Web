@@ -24,9 +24,10 @@ function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
+// Uses getFullYear/Month/Date to read the LOCAL date (avoids UTC midnight shift)
 function parseLocalDate(str: string) {
-  const [y, m, d] = str.split("T")[0].split("-").map(Number);
-  return new Date(y, m - 1, d);
+  const d = new Date(str);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 function fmtShort(date: Date) {
@@ -35,9 +36,10 @@ function fmtShort(date: Date) {
 
 interface GanttViewProps {
   implementaciones: any[];
+  onEditarTarea: (tarea: any) => void;
 }
 
-export default function GanttView({ implementaciones }: GanttViewProps) {
+export default function GanttView({ implementaciones, onEditarTarea }: GanttViewProps) {
   // Collect all tasks with at least one date
   const rows: { tarea: any; faseName: string; start: Date | null; end: Date | null }[] = [];
   for (const impl of implementaciones) {
@@ -195,7 +197,8 @@ export default function GanttView({ implementaciones }: GanttViewProps) {
 
                 {/* Task bar */}
                 <div
-                  title={`${t.titulo}\n${COLUMNA_LABEL[t.columna] ?? t.columna}\n${start ? fmtShort(start) : "—"} → ${end ? fmtShort(end) : "—"}`}
+                  title={`${t.titulo} · ${COLUMNA_LABEL[t.columna] ?? t.columna}\n${start ? fmtShort(start) : "—"} → ${end ? fmtShort(end) : "—"}`}
+                  onClick={() => onEditarTarea(t)}
                   style={{
                     position: "absolute",
                     left: `${Math.max(0, barLeft)}%`,
@@ -209,12 +212,15 @@ export default function GanttView({ implementaciones }: GanttViewProps) {
                       : `${color}cc`,
                     border: `1.5px solid ${color}`,
                     boxSizing: "border-box",
-                    cursor: "default",
+                    cursor: "pointer",
                     display: "flex", alignItems: "center",
                     paddingLeft: "5px",
                     overflow: "hidden",
                     zIndex: 1,
+                    transition: "filter 0.1s",
                   }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.filter = "brightness(1.15)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.filter = "none"; }}
                 >
                   {!isMilestone && barWidth > 6 && (
                     <span style={{ fontSize: "0.58rem", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
