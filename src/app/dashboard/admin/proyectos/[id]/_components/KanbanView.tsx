@@ -165,6 +165,8 @@ interface KanbanViewProps {
   implementaciones: any[];
   proyecto: any;
   activeTarea: any;
+  sprintFilter: string;
+  sprints: any[];
   collapsedFases: Set<string>;
   toggleFase: (id: string) => void;
   onEliminarFase: (id: string) => void;
@@ -174,9 +176,16 @@ interface KanbanViewProps {
   onModalFase: () => void;
 }
 
+function filterBysprint(tareas: any[], sprintFilter: string): any[] {
+  if (sprintFilter === "all")     return tareas;
+  if (sprintFilter === "backlog") return tareas.filter((t) => !t.sprint);
+  return tareas.filter((t) => t.sprint?.id === sprintFilter);
+}
+
 export default function KanbanView({
   implementaciones,
   activeTarea,
+  sprintFilter,
   collapsedFases,
   toggleFase,
   onEliminarFase,
@@ -202,14 +211,15 @@ export default function KanbanView({
       )}
 
       {implementaciones.map((impl) => {
+        const tareasFiltradas = filterBysprint(impl.tareas ?? [], sprintFilter);
         const tareasPorCol = COLUMNAS.reduce<Record<string, any[]>>((acc, col) => {
-          acc[col.key] = (impl.tareas ?? [])
+          acc[col.key] = tareasFiltradas
             .filter((t: any) => t.columna === col.key)
             .sort((a: any, b: any) => a.orden - b.orden);
           return acc;
         }, {});
 
-        const totalTareas = impl.tareas?.length ?? 0;
+        const totalTareas = tareasFiltradas.length;
         const completadas = tareasPorCol["completado"]?.length ?? 0;
         const pctFase = totalTareas > 0 ? Math.round((completadas / totalTareas) * 100) : 0;
         const isCollapsed = collapsedFases.has(impl.id);

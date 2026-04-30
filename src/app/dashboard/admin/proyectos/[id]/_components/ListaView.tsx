@@ -20,14 +20,21 @@ function fmt(fecha?: string | null) {
 
 const AVATAR_COLORS = ["#4A8B00", "#0ea5e9", "#8b5cf6", "#f59e0b", "#ec4899", "#06b6d4"];
 
+function filterBySprintLista(tareas: any[], sprintFilter: string): any[] {
+  if (sprintFilter === "all")     return tareas;
+  if (sprintFilter === "backlog") return tareas.filter((t) => !t.sprint);
+  return tareas.filter((t) => t.sprint?.id === sprintFilter);
+}
+
 interface ListaViewProps {
   implementaciones: any[];
+  sprintFilter?: string;
   onEliminarTarea: (id: string) => void;
   onEditarTarea: (tarea: any) => void;
 }
 
-export default function ListaView({ implementaciones, onEliminarTarea, onEditarTarea }: ListaViewProps) {
-  const totalTareas = implementaciones.reduce((sum, impl) => sum + (impl.tareas?.length ?? 0), 0);
+export default function ListaView({ implementaciones, sprintFilter = "all", onEliminarTarea, onEditarTarea }: ListaViewProps) {
+  const totalTareas = implementaciones.reduce((sum, impl) => sum + filterBySprintLista(impl.tareas ?? [], sprintFilter).length, 0);
 
   if (totalTareas === 0) {
     return (
@@ -63,7 +70,7 @@ export default function ListaView({ implementaciones, onEliminarTarea, onEditarT
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       {implementaciones.map((impl) => {
-        const tareas: any[] = impl.tareas ?? [];
+        const tareas: any[] = filterBySprintLista(impl.tareas ?? [], sprintFilter);
         if (tareas.length === 0) return null;
 
         return (

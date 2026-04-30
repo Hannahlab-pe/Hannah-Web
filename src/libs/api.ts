@@ -121,6 +121,7 @@ export function actualizarTarea(id: string, data: {
   fechaInicio?: string;
   fechaLimite?: string;
   responsablesIds?: string[];
+  sprintId?: string | null;
 }) {
   return apiFetch<any>(`/implementaciones/tareas/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
 }
@@ -131,6 +132,37 @@ export function moverTarea(id: string, columna: string) {
 
 export function eliminarTarea(id: string) {
   return apiFetch<void>(`/implementaciones/tareas/${id}`, { method: 'DELETE' });
+}
+
+// ── Sprints ───────────────────────────────────────────────────────
+
+export function getSprintsByProyecto(proyectoId: string) {
+  return apiFetch<any[]>(`/sprints/proyecto/${proyectoId}`);
+}
+
+export function crearSprint(data: {
+  nombre: string;
+  objetivo?: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+  estado?: string;
+  proyectoId: string;
+}) {
+  return apiFetch<any>('/sprints', { method: 'POST', body: JSON.stringify(data) });
+}
+
+export function actualizarSprint(id: string, data: {
+  nombre?: string;
+  objetivo?: string;
+  fechaInicio?: string;
+  fechaFin?: string;
+  estado?: string;
+}) {
+  return apiFetch<any>(`/sprints/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+}
+
+export function eliminarSprint(id: string) {
+  return apiFetch<void>(`/sprints/${id}`, { method: 'DELETE' });
 }
 
 // ── Facturas ─────────────────────────────────────────────────────

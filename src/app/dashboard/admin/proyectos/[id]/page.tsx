@@ -24,6 +24,10 @@ import {
   eliminarTarea,
   actualizarProyecto,
   getClientes,
+  getSprintsByProyecto,
+  crearSprint,
+  actualizarSprint,
+  eliminarSprint,
 } from "@/libs/api";
 import LoadingSpinner from "@/components/shared/loading-spinner";
 import KanbanView from "./_components/KanbanView";
@@ -179,6 +183,83 @@ function ConfirmDialog({ open, onClose, onConfirm, title, message, danger = true
   );
 }
 
+const SPRINT_ESTADO: Record<string, { label: string; color: string }> = {
+  planificacion: { label: "Planif.",  color: "#6B7280" },
+  activo:        { label: "Activo",   color: "#2563EB" },
+  completado:    { label: "Cerrado",  color: "#4A8B00" },
+};
+
+function fmtSprint(fecha: string) {
+  const d = new Date(fecha);
+  return d.toLocaleDateString("es-PE", { day: "2-digit", month: "short" });
+}
+
+function SprintPill({
+  label, active, estado, fechas, dot, onClick, onEdit, onDelete,
+}: {
+  label: string; active: boolean; estado?: string; fechas?: string;
+  dot?: string; onClick: () => void;
+  onEdit?: () => void; onDelete?: () => void;
+}) {
+  const [hover, setHover] = useState(false);
+  const info = estado ? SPRINT_ESTADO[estado] : null;
+  const dotColor = dot ?? info?.color ?? "#6B7280";
+
+  return (
+    <div
+      style={{ position: "relative", display: "inline-flex" }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <button
+        onClick={onClick}
+        style={{
+          display: "flex", alignItems: "center", gap: "0.35rem",
+          padding: "0.3rem 0.7rem", borderRadius: "999px", cursor: "pointer",
+          fontSize: "0.72rem", fontWeight: 600,
+          border: active ? "none" : "1px solid var(--border)",
+          background: active ? "var(--verde)" : "var(--bg-soft)",
+          color: active ? "#fff" : "var(--text-muted)",
+          transition: "all 0.15s",
+        }}
+      >
+        {info && <div style={{ width: 6, height: 6, borderRadius: "50%", background: active ? "#fff" : dotColor, flexShrink: 0 }} />}
+        {dot && !info && <div style={{ width: 6, height: 6, borderRadius: "50%", background: active ? "#fff" : dotColor, flexShrink: 0 }} />}
+        {label}
+        {fechas && !active && <span style={{ fontWeight: 400, opacity: 0.7 }}>{fechas}</span>}
+      </button>
+
+      {/* Edit/delete actions on hover */}
+      {hover && (onEdit || onDelete) && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 4px)", left: 0,
+          display: "flex", gap: "2px", background: "var(--bg)", border: "1px solid var(--border)",
+          borderRadius: "8px", padding: "3px", boxShadow: "0 4px 12px rgba(0,0,0,0.12)", zIndex: 10,
+        }}>
+          {onEdit && (
+            <button onClick={(e) => { e.stopPropagation(); onEdit(); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: "3px 5px", borderRadius: "5px", fontSize: "0.68rem", fontWeight: 600 }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-soft)"; e.currentTarget.style.color = "var(--verde)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "var(--text-muted)"; }}
+            >
+              Editar
+            </button>
+          )}
+          {onDelete && (
+            <button onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: "3px 5px", borderRadius: "5px", fontSize: "0.68rem", fontWeight: 600 }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-soft)"; e.currentTarget.style.color = "#ef4444"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "var(--text-muted)"; }}
+            >
+              Eliminar
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Página principal ──────────────────────────────────────────────
 export default function ProyectoPage() {
   const { id } = useParams<{ id: string }>();
@@ -191,6 +272,15 @@ export default function ProyectoPage() {
 
   // ── Vista activa ──
   const [view, setView] = useState<View>("kanban");
+
+  // ── Sprints ──
+  const [sprints, setSprints] = useState<any[]>([]);
+  // "all" | "backlog" | sprint.id
+  const [sprintFilter, setSprintFilter] = useState<string>("all");
+  const [modalSprint, setModalSprint] = useState(false);
+  const [editSprintData, setEditSprintData] = useState<any>(null);
+  const [sprintFrm, setSprintFrm] = useState({ nombre: "", objetivo: "", fechaInicio: "", fechaFin: "", estado: "planificacion" });
+  const [sprintLoading, setSprintLoading] = useState(false);
 
   // ── Modal nueva fase ──
   const [modalFase, setModalFase] = useState(false);
@@ -206,7 +296,7 @@ export default function ProyectoPage() {
   // ── Modal editar tarea ──
   const [modalEditTarea, setModalEditTarea] = useState(false);
   const [editTareaData, setEditTareaData] = useState<any>(null);
-  const [editTareaFrm, setEditTareaFrm] = useState({ titulo: "", descripcion: "", prioridad: "media", fechaInicio: "", fechaLimite: "", responsablesIds: [] as string[] });
+  const [editTareaFrm, setEditTareaFrm] = useState({ titulo: "", descripcion: "", prioridad: "media", fechaInicio: "", fechaLimite: "", responsablesIds: [] as string[], sprintId: "" });
   const [editTareaLoading, setEditTareaLoading] = useState(false);
 
   // ── Confirm dialog ──
@@ -241,9 +331,14 @@ export default function ProyectoPage() {
 
   const cargar = useCallback(async () => {
     try {
-      const [proy, impls] = await Promise.all([getProyecto(id), getImplementacionesByProyecto(id)]);
+      const [proy, impls, sps] = await Promise.all([
+        getProyecto(id),
+        getImplementacionesByProyecto(id),
+        getSprintsByProyecto(id),
+      ]);
       setProyecto(proy);
       setImplementaciones(impls);
+      setSprints(sps);
     } catch (e: any) {
       setError(e.message ?? "Error al cargar");
     } finally {
@@ -361,6 +456,7 @@ export default function ProyectoPage() {
       fechaInicio: tarea.fechaInicio ? tarea.fechaInicio.split("T")[0] : "",
       fechaLimite: tarea.fechaLimite ? tarea.fechaLimite.split("T")[0] : "",
       responsablesIds: tarea.responsables?.map((r: any) => r.id) ?? [],
+      sprintId: tarea.sprint?.id ?? "",
     });
     setModalEditTarea(true);
   }
@@ -377,6 +473,7 @@ export default function ProyectoPage() {
         fechaInicio: editTareaFrm.fechaInicio || undefined,
         fechaLimite: editTareaFrm.fechaLimite || undefined,
         responsablesIds: editTareaFrm.responsablesIds,
+        sprintId: editTareaFrm.sprintId || null,
       });
       setImplementaciones((prev) =>
         prev.map((impl) => ({ ...impl, tareas: impl.tareas?.map((t: any) => t.id === editTareaData.id ? { ...t, ...updated } : t) }))
@@ -415,6 +512,71 @@ export default function ProyectoPage() {
     } catch (err: any) {
       openConfirm("Error", err.message ?? "Error al actualizar proyecto", () => {});
     } finally { setEditProyLoading(false); }
+  }
+
+  // ── Handlers sprints ──
+  function abrirModalSprint(sprint?: any) {
+    if (sprint) {
+      setEditSprintData(sprint);
+      setSprintFrm({
+        nombre:      sprint.nombre ?? "",
+        objetivo:    sprint.objetivo ?? "",
+        fechaInicio: sprint.fechaInicio ? sprint.fechaInicio.split("T")[0] : "",
+        fechaFin:    sprint.fechaFin    ? sprint.fechaFin.split("T")[0]    : "",
+        estado:      sprint.estado ?? "planificacion",
+      });
+    } else {
+      setEditSprintData(null);
+      setSprintFrm({ nombre: "", objetivo: "", fechaInicio: "", fechaFin: "", estado: "planificacion" });
+    }
+    setModalSprint(true);
+  }
+
+  async function handleGuardarSprint(e: React.FormEvent) {
+    e.preventDefault();
+    if (!sprintFrm.nombre.trim()) return;
+    setSprintLoading(true);
+    try {
+      if (editSprintData) {
+        await actualizarSprint(editSprintData.id, {
+          nombre:      sprintFrm.nombre.trim(),
+          objetivo:    sprintFrm.objetivo || undefined,
+          fechaInicio: sprintFrm.fechaInicio || undefined,
+          fechaFin:    sprintFrm.fechaFin    || undefined,
+          estado:      sprintFrm.estado,
+        });
+      } else {
+        await crearSprint({
+          nombre:      sprintFrm.nombre.trim(),
+          objetivo:    sprintFrm.objetivo || undefined,
+          fechaInicio: sprintFrm.fechaInicio || undefined,
+          fechaFin:    sprintFrm.fechaFin    || undefined,
+          estado:      sprintFrm.estado,
+          proyectoId:  id,
+        });
+      }
+      setModalSprint(false);
+      const sps = await getSprintsByProyecto(id);
+      setSprints(sps);
+    } finally {
+      setSprintLoading(false);
+    }
+  }
+
+  function handleEliminarSprint(sprintId: string) {
+    openConfirm(
+      "Eliminar sprint",
+      "Se quitará el sprint. Las tareas asociadas quedarán en el backlog.",
+      async () => {
+        try {
+          await eliminarSprint(sprintId);
+          if (sprintFilter === sprintId) setSprintFilter("all");
+          const sps = await getSprintsByProyecto(id);
+          setSprints(sps);
+          cargar(); // re-fetch tareas para que sprint sea null
+        } catch {}
+      }
+    );
   }
 
   const inputS: React.CSSProperties = {
@@ -551,6 +713,60 @@ export default function ProyectoPage() {
         })}
       </div>
 
+      {/* ── Sprint selector (solo en kanban y lista) ── */}
+      {(view === "kanban" || view === "lista") && (
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "var(--text-muted)", flexShrink: 0 }}>Sprint:</span>
+
+          {/* Todos */}
+          <SprintPill
+            label="Todos"
+            active={sprintFilter === "all"}
+            onClick={() => setSprintFilter("all")}
+          />
+          {/* Backlog */}
+          <SprintPill
+            label="Backlog"
+            active={sprintFilter === "backlog"}
+            onClick={() => setSprintFilter("backlog")}
+            dot="#6B7280"
+          />
+
+          {/* Sprints del proyecto */}
+          {sprints.map((sp) => (
+            <SprintPill
+              key={sp.id}
+              label={sp.nombre}
+              active={sprintFilter === sp.id}
+              estado={sp.estado}
+              fechas={sp.fechaInicio && sp.fechaFin ? `${fmtSprint(sp.fechaInicio)} – ${fmtSprint(sp.fechaFin)}` : undefined}
+              onClick={() => setSprintFilter(sp.id)}
+              onEdit={() => abrirModalSprint(sp)}
+              onDelete={() => handleEliminarSprint(sp.id)}
+            />
+          ))}
+
+          {/* Nuevo sprint */}
+          <button
+            onClick={() => abrirModalSprint()}
+            style={{
+              display: "flex", alignItems: "center", gap: "0.3rem",
+              padding: "0.3rem 0.65rem", borderRadius: "999px", cursor: "pointer",
+              fontSize: "0.7rem", fontWeight: 600,
+              border: "1.5px dashed var(--border)", background: "transparent",
+              color: "var(--text-muted)", transition: "all 0.15s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--verde)"; e.currentTarget.style.color = "var(--verde)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-muted)"; }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ width: 11, height: 11 }}>
+              <path d="M12 4.5v15m7.5-7.5h-15" strokeLinecap="round" />
+            </svg>
+            Nuevo sprint
+          </button>
+        </div>
+      )}
+
       {/* ── Vistas ── */}
       {view === "kanban" && (
         <DndContext
@@ -564,6 +780,8 @@ export default function ProyectoPage() {
             implementaciones={implementaciones}
             proyecto={proyecto}
             activeTarea={activeTarea}
+            sprintFilter={sprintFilter}
+            sprints={sprints}
             collapsedFases={collapsedFases}
             toggleFase={toggleFase}
             onEliminarFase={handleEliminarFase}
@@ -578,6 +796,7 @@ export default function ProyectoPage() {
       {view === "lista" && (
         <ListaView
           implementaciones={implementaciones}
+          sprintFilter={sprintFilter}
           onEliminarTarea={handleEliminarTarea}
           onEditarTarea={abrirEditTarea}
         />
@@ -696,6 +915,15 @@ export default function ProyectoPage() {
               <input type="date" value={editTareaFrm.fechaLimite} onChange={(e) => setEditTareaFrm((p) => ({ ...p, fechaLimite: e.target.value }))} style={inputS} />
             </div>
           </div>
+          {sprints.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Sprint</label>
+              <select value={editTareaFrm.sprintId} onChange={(e) => setEditTareaFrm((p) => ({ ...p, sprintId: e.target.value }))} style={inputS}>
+                <option value="">Sin sprint (Backlog)</option>
+                {sprints.map((sp) => <option key={sp.id} value={sp.id}>{sp.nombre}</option>)}
+              </select>
+            </div>
+          )}
           {proyecto?.encargados?.length > 0 && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
               <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Responsables</label>
@@ -720,6 +948,44 @@ export default function ProyectoPage() {
             <button type="button" onClick={() => setModalEditTarea(false)} style={{ flex: 1, padding: "0.55rem", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)" }}>Cancelar</button>
             <button type="submit" disabled={editTareaLoading} style={{ flex: 2, padding: "0.55rem", borderRadius: "8px", border: "none", background: "var(--verde)", color: "#fff", fontWeight: 600, fontSize: "0.8rem", cursor: editTareaLoading ? "wait" : "pointer" }}>
               {editTareaLoading ? "Guardando..." : "Guardar cambios"}
+            </button>
+          </div>
+        </form>
+      </AppModal>
+
+      {/* ── Modal sprint ── */}
+      <AppModal open={modalSprint} onClose={() => setModalSprint(false)} title={editSprintData ? "Editar sprint" : "Nuevo sprint"}>
+        <form onSubmit={handleGuardarSprint} style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Nombre <span style={{ color: "#ef4444" }}>*</span></label>
+            <input required placeholder="Sprint 1, Sprint de diseño…" value={sprintFrm.nombre} onChange={(e) => setSprintFrm((p) => ({ ...p, nombre: e.target.value }))} style={inputS} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Objetivo</label>
+            <textarea placeholder="¿Qué se quiere lograr en este sprint?" value={sprintFrm.objetivo} onChange={(e) => setSprintFrm((p) => ({ ...p, objetivo: e.target.value }))} rows={2} style={{ ...inputS, resize: "vertical" }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Inicio</label>
+              <input type="date" value={sprintFrm.fechaInicio} onChange={(e) => setSprintFrm((p) => ({ ...p, fechaInicio: e.target.value }))} style={inputS} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+              <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Fin</label>
+              <input type="date" value={sprintFrm.fechaFin} onChange={(e) => setSprintFrm((p) => ({ ...p, fechaFin: e.target.value }))} style={inputS} />
+            </div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <label style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--text-secondary)" }}>Estado</label>
+            <select value={sprintFrm.estado} onChange={(e) => setSprintFrm((p) => ({ ...p, estado: e.target.value }))} style={inputS}>
+              <option value="planificacion">Planificación</option>
+              <option value="activo">Activo</option>
+              <option value="completado">Completado</option>
+            </select>
+          </div>
+          <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.25rem" }}>
+            <button type="button" onClick={() => setModalSprint(false)} style={{ flex: 1, padding: "0.55rem", borderRadius: "8px", border: "1px solid var(--border)", background: "transparent", cursor: "pointer", fontSize: "0.8rem", color: "var(--text-secondary)" }}>Cancelar</button>
+            <button type="submit" disabled={sprintLoading} style={{ flex: 2, padding: "0.55rem", borderRadius: "8px", border: "none", background: "var(--verde)", color: "#fff", fontWeight: 600, fontSize: "0.8rem", cursor: sprintLoading ? "wait" : "pointer" }}>
+              {sprintLoading ? "Guardando..." : editSprintData ? "Guardar cambios" : "Crear sprint"}
             </button>
           </div>
         </form>
