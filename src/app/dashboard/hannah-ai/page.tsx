@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import ReactMarkdown from "react-markdown";
 
 const AI_URL = process.env.NEXT_PUBLIC_AI_API_URL ?? "http://localhost:8000";
 
@@ -32,6 +33,7 @@ function Burbuja({ msg, toolEvent }: { msg: Mensaje; toolEvent?: ToolEvent | nul
     consultar_proyectos: "proyectos",
     consultar_tickets: "tickets",
     consultar_reuniones: "reuniones",
+    consultar_miembros_proyecto: "miembros",
   };
 
   return (
@@ -79,7 +81,6 @@ function Burbuja({ msg, toolEvent }: { msg: Mensaje; toolEvent?: ToolEvent | nul
           fontSize: "0.85rem",
           fontFamily: "'Outfit', sans-serif",
           lineHeight: 1.65,
-          whiteSpace: "pre-wrap",
           wordBreak: "break-word",
         }}>
           {msg.loading ? (
@@ -108,26 +109,55 @@ function Burbuja({ msg, toolEvent }: { msg: Mensaje; toolEvent?: ToolEvent | nul
   );
 }
 
-// Renderer mínimo de markdown (negrita, código inline)
 function MdContent({ content, isUser }: { content: string; isUser: boolean }) {
-  const parts = content.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  const codeBg = isUser ? "rgba(255,255,255,0.15)" : "var(--bg-soft)";
+  const textColor = isUser ? "#fff" : "var(--text-primary)";
+  const mutedColor = isUser ? "rgba(255,255,255,0.7)" : "var(--text-muted)";
+
   return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return <strong key={i}>{part.slice(2, -2)}</strong>;
-        }
-        if (part.startsWith("`") && part.endsWith("`")) {
-          return (
-            <code key={i} style={{
-              background: isUser ? "rgba(255,255,255,0.15)" : "var(--bg-soft)",
-              padding: "0.1rem 0.35rem", borderRadius: "4px", fontSize: "0.82rem",
-            }}>{part.slice(1, -1)}</code>
+    <ReactMarkdown
+      components={{
+        p: ({ children }) => (
+          <p style={{ margin: "0 0 0.5em", lineHeight: 1.65, color: textColor }}>{children}</p>
+        ),
+        strong: ({ children }) => (
+          <strong style={{ fontWeight: 700, color: textColor }}>{children}</strong>
+        ),
+        em: ({ children }) => (
+          <em style={{ color: mutedColor }}>{children}</em>
+        ),
+        ul: ({ children }) => (
+          <ul style={{ margin: "0.35em 0 0.5em", paddingLeft: "1.3em", display: "flex", flexDirection: "column", gap: "0.2em" }}>{children}</ul>
+        ),
+        ol: ({ children }) => (
+          <ol style={{ margin: "0.35em 0 0.5em", paddingLeft: "1.3em", display: "flex", flexDirection: "column", gap: "0.2em" }}>{children}</ol>
+        ),
+        li: ({ children }) => (
+          <li style={{ lineHeight: 1.6, color: textColor }}>{children}</li>
+        ),
+        code: ({ children, className }) => {
+          const isBlock = !!className;
+          return isBlock ? (
+            <pre style={{ background: codeBg, borderRadius: "8px", padding: "0.75em 1em", margin: "0.5em 0", overflowX: "auto" }}>
+              <code style={{ fontSize: "0.8rem", fontFamily: "monospace", color: textColor }}>{children}</code>
+            </pre>
+          ) : (
+            <code style={{ background: codeBg, padding: "0.1rem 0.35rem", borderRadius: "4px", fontSize: "0.82rem", fontFamily: "monospace" }}>{children}</code>
           );
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
+        },
+        h1: ({ children }) => <p style={{ fontWeight: 700, fontSize: "1rem", margin: "0.5em 0 0.25em", color: textColor }}>{children}</p>,
+        h2: ({ children }) => <p style={{ fontWeight: 700, fontSize: "0.95rem", margin: "0.5em 0 0.25em", color: textColor }}>{children}</p>,
+        h3: ({ children }) => <p style={{ fontWeight: 600, fontSize: "0.9rem", margin: "0.4em 0 0.2em", color: textColor }}>{children}</p>,
+        a: ({ href, children }) => (
+          <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: "#4ade80", textDecoration: "underline" }}>{children}</a>
+        ),
+        blockquote: ({ children }) => (
+          <blockquote style={{ borderLeft: "3px solid #4ade80", paddingLeft: "0.75em", margin: "0.5em 0", color: mutedColor }}>{children}</blockquote>
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
   );
 }
 
