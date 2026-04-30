@@ -106,6 +106,7 @@ export function crearTarea(data: {
   descripcion?: string;
   columna?: string;
   prioridad?: string;
+  fechaInicio?: string;
   fechaLimite?: string;
   implementacionId: string;
   responsablesIds?: string[];
@@ -117,6 +118,7 @@ export function actualizarTarea(id: string, data: {
   titulo?: string;
   descripcion?: string;
   prioridad?: string;
+  fechaInicio?: string;
   fechaLimite?: string;
   responsablesIds?: string[];
 }) {
