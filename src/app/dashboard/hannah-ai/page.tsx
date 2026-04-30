@@ -35,6 +35,7 @@ function Burbuja({ msg, toolEvent }: { msg: Mensaje; toolEvent?: ToolEvent | nul
     consultar_tickets: "tickets",
     consultar_reuniones: "reuniones",
     consultar_miembros_proyecto: "miembros",
+    crear_ticket: "creando ticket",
   };
 
   return (
