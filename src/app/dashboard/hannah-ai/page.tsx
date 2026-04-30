@@ -58,7 +58,7 @@ function Burbuja({ msg, toolEvent }: { msg: Mensaje; toolEvent?: ToolEvent | nul
         </div>
       )}
 
-      <div style={{ maxWidth: "75%", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+      <div style={{ maxWidth: msg.role === "assistant" ? "92%" : "75%", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
         {/* Tool indicator */}
         {!isUser && toolEvent && !toolEvent.done && (
           <div style={{
@@ -369,7 +369,7 @@ export default function HannahAIPage() {
             {/* Sugerencias */}
             <div style={{
               display: "grid", gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "0.75rem", width: "100%", maxWidth: "720px",
+              gap: "0.75rem", width: "100%", maxWidth: "860px",
             }}>
               {SUGERENCIAS.map((s, i) => (
                 <button
@@ -399,7 +399,7 @@ export default function HannahAIPage() {
         {/* Mensajes */}
         {!isFirstMessage && (
           <div style={{
-            maxWidth: "720px", margin: "0 auto",
+            maxWidth: "860px", margin: "0 auto",
             display: "flex", flexDirection: "column", gap: "1.25rem",
             padding: "1.5rem 0",
           }}>
@@ -428,7 +428,7 @@ export default function HannahAIPage() {
         <div
           className="ai-input-box"
           style={{
-            maxWidth: "720px", margin: "0 auto",
+            maxWidth: "860px", margin: "0 auto",
             border: "1px solid var(--border)", borderRadius: "16px",
             background: "var(--bg)", transition: "border-color 0.2s, box-shadow 0.2s",
             boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
