@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const AI_URL = process.env.NEXT_PUBLIC_AI_API_URL ?? "http://localhost:8000";
 
@@ -116,6 +117,7 @@ function MdContent({ content, isUser }: { content: string; isUser: boolean }) {
 
   return (
     <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
       components={{
         p: ({ children }) => (
           <p style={{ margin: "0 0 0.5em", lineHeight: 1.65, color: textColor }}>{children}</p>
@@ -154,6 +156,21 @@ function MdContent({ content, isUser }: { content: string; isUser: boolean }) {
         blockquote: ({ children }) => (
           <blockquote style={{ borderLeft: "3px solid #4ade80", paddingLeft: "0.75em", margin: "0.5em 0", color: mutedColor }}>{children}</blockquote>
         ),
+        table: ({ children }) => (
+          <div style={{ overflowX: "auto", margin: "0.6em 0" }}>
+            <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.82rem" }}>{children}</table>
+          </div>
+        ),
+        thead: ({ children }) => (
+          <thead style={{ background: isUser ? "rgba(255,255,255,0.1)" : "var(--bg-soft)" }}>{children}</thead>
+        ),
+        th: ({ children }) => (
+          <th style={{ padding: "0.45em 0.75em", textAlign: "left", fontWeight: 600, color: textColor, borderBottom: `1px solid ${isUser ? "rgba(255,255,255,0.2)" : "var(--border)"}`, whiteSpace: "nowrap" }}>{children}</th>
+        ),
+        td: ({ children }) => (
+          <td style={{ padding: "0.4em 0.75em", color: textColor, borderBottom: `1px solid ${isUser ? "rgba(255,255,255,0.1)" : "var(--border)"}` }}>{children}</td>
+        ),
+        hr: () => <hr style={{ border: "none", borderTop: `1px solid ${isUser ? "rgba(255,255,255,0.15)" : "var(--border)"}`, margin: "0.75em 0" }} />,
       }}
     >
       {content}
