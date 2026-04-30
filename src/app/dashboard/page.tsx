@@ -203,7 +203,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats + Hannah AI card */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.85rem" }}>
         {(isAdmin ? statsAdmin : [
           { icon: "M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z", value: String(proyectos.filter(p => p.estado !== "completado").length), label: "Proyectos activos", sub: `${proyectos.length} en total` },
@@ -213,6 +213,53 @@ export default function DashboardPage() {
         ]).map((s: any) => (
           <StatCard key={s.label} {...s} />
         ))}
+
+        {/* Hannah AI card — mismo tamaño que las stat cards */}
+        <div
+          className="dash-el"
+          onClick={() => router.push("/dashboard/hannah-ai")}
+          style={{
+            opacity: 0, position: "relative", borderRadius: "14px",
+            overflow: "hidden", cursor: "pointer",
+            border: "1px solid rgba(74,139,0,0.3)",
+            transition: "transform 0.2s, box-shadow 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
+            (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 28px rgba(74,139,0,0.22)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
+            (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+          }}
+        >
+          <div style={{ position: "absolute", inset: 0 }}>
+            <Grainient
+              color1="#4ade80" color2="#052e0f" color3="#0d2e12"
+              timeSpeed={0.18} warpStrength={0.8} warpFrequency={4}
+              warpSpeed={1.5} warpAmplitude={60} blendSoftness={0.08}
+              rotationAmount={400} noiseScale={2} grainAmount={0.08}
+              grainScale={2} contrast={1.6} zoom={0.9}
+            />
+          </div>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+          <div style={{ position: "relative", zIndex: 1, padding: "1.25rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+            <div style={{
+              width: "34px", height: "34px", borderRadius: "9px",
+              background: "rgba(74,222,128,0.15)", border: "1px solid rgba(74,222,128,0.3)",
+              display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "0.25rem",
+            }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="1.5" style={{ width: "18px", height: "18px" }}>
+                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <p style={{ fontSize: "1.9rem", fontWeight: 800, color: "#fff", margin: 0, lineHeight: 1, fontFamily: "'Google Sans', system-ui" }}>
+              Hannah <span style={{ color: "#4ade80" }}>AI</span>
+            </p>
+            <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.55)", margin: 0, fontWeight: 500 }}>Asistente inteligente</p>
+            <p style={{ fontSize: "0.68rem", color: "#4ade80", margin: 0, fontWeight: 600 }}>Abrir chat →</p>
+          </div>
+        </div>
       </div>
 
       {isAdmin ? (
@@ -409,91 +456,6 @@ export default function DashboardPage() {
           </Card>
         </div>
       )}
-
-      {/* Hannah AI card */}
-      <div
-        className="dash-el"
-        onClick={() => router.push("/dashboard/hannah-ai")}
-        style={{
-          opacity: 0, position: "relative", borderRadius: "16px",
-          overflow: "hidden", cursor: "pointer", height: "130px",
-          border: "1px solid rgba(255,255,255,0.08)",
-          transition: "transform 0.2s, box-shadow 0.2s",
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "0 8px 32px rgba(82,39,255,0.25)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-          (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-        }}
-      >
-        {/* Fondo animado */}
-        <div style={{ position: "absolute", inset: 0 }}>
-          <Grainient
-            color1="#FF9FFC"
-            color2="#5227FF"
-            color3="#B497CF"
-            timeSpeed={0.25}
-            warpStrength={1}
-            warpFrequency={5}
-            warpSpeed={2}
-            warpAmplitude={50}
-            blendSoftness={0.05}
-            rotationAmount={500}
-            noiseScale={2}
-            grainAmount={0.1}
-            grainScale={2}
-            contrast={1.5}
-            zoom={0.9}
-          />
-        </div>
-        {/* Overlay oscuro para legibilidad */}
-        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.28)" }} />
-        {/* Contenido */}
-        <div style={{
-          position: "relative", zIndex: 1,
-          height: "100%", padding: "1.25rem 1.75rem",
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <div style={{
-              width: "44px", height: "44px", borderRadius: "50%",
-              background: "rgba(255,255,255,0.12)",
-              border: "1.5px solid rgba(255,255,255,0.25)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              backdropFilter: "blur(8px)",
-            }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" style={{ width: "22px", height: "22px" }}>
-                <path d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: "1rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em", fontFamily: "'Google Sans', system-ui" }}>
-                Hannah <span style={{ opacity: 0.85 }}>AI</span>
-              </p>
-              <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "rgba(255,255,255,0.7)", fontFamily: "'Outfit', sans-serif" }}>
-                Consulta tus proyectos, tickets y reuniones con IA
-              </p>
-            </div>
-          </div>
-          <div style={{
-            display: "flex", alignItems: "center", gap: "0.4rem",
-            padding: "0.45rem 1rem", borderRadius: "999px",
-            background: "rgba(255,255,255,0.15)",
-            border: "1px solid rgba(255,255,255,0.25)",
-            backdropFilter: "blur(8px)",
-            fontSize: "0.78rem", fontWeight: 600, color: "#fff",
-            fontFamily: "'Outfit', sans-serif",
-          }}>
-            Abrir chat
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" style={{ width: "13px", height: "13px" }}>
-              <path d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-        </div>
-      </div>
 
       {/* Ayuda */}
       <div className="dash-el" style={{ opacity: 0 }}>
