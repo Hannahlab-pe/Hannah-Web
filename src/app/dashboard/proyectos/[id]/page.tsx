@@ -25,10 +25,14 @@ const ESTADO_MAP: Record<string, { label: string; color: string }> = {
   pausado:     { label: "Pausado",     color: "#6B7280" },
 };
 
-function fmt(fecha?: string) {
-  if (!fecha) return null;
+const AVATAR_COLORS = ["#4A8B00", "#0ea5e9", "#8b5cf6", "#f59e0b", "#ec4899", "#06b6d4"];
+
+function fmt(fecha?: string | null) {
+  if (!fecha) return "—";
   return new Date(fecha).toLocaleDateString("es-PE", { day: "2-digit", month: "short" });
 }
+
+type Vista = "kanban" | "lista";
 
 export default function ProyectoDetallePage() {
   const { id } = useParams<{ id: string }>();
@@ -38,6 +42,7 @@ export default function ProyectoDetallePage() {
   const [implementaciones, setImplementaciones] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [vista, setVista] = useState<Vista>("kanban");
 
   const cargar = useCallback(async () => {
     try {
@@ -60,6 +65,11 @@ export default function ProyectoDetallePage() {
   if (error) return <div style={{ padding: "2rem", color: "#ef4444", fontSize: "0.85rem" }}>{error}</div>;
 
   const estadoInfo = proyecto ? (ESTADO_MAP[proyecto.estado] ?? { label: proyecto.estado, color: "#6B7280" }) : null;
+
+  const VIEWS: { key: Vista; label: string; icon: string }[] = [
+    { key: "kanban", label: "Kanban", icon: "M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" },
+    { key: "lista",  label: "Lista",  icon: "M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" },
+  ];
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", maxWidth: "100%" }}>
@@ -103,6 +113,29 @@ export default function ProyectoDetallePage() {
         </div>
       </div>
 
+      {/* View switcher */}
+      <div style={{ display: "flex", gap: "0.35rem", background: "var(--bg-soft)", border: "1px solid var(--border)", borderRadius: "10px", padding: "4px", alignSelf: "flex-start" }}>
+        {VIEWS.map((v) => (
+          <button
+            key={v.key}
+            onClick={() => setVista(v.key)}
+            style={{
+              display: "flex", alignItems: "center", gap: "0.4rem",
+              padding: "0.38rem 0.85rem", borderRadius: "7px", border: "none", cursor: "pointer",
+              fontSize: "0.78rem", fontWeight: 600, transition: "all 0.15s",
+              background: vista === v.key ? "var(--bg)" : "transparent",
+              color: vista === v.key ? "var(--text-primary)" : "var(--text-muted)",
+              boxShadow: vista === v.key ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: "14px", height: "14px", flexShrink: 0 }}>
+              <path d={v.icon} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {v.label}
+          </button>
+        ))}
+      </div>
+
       {/* Sin fases */}
       {implementaciones.length === 0 && (
         <div style={{ padding: "3rem", textAlign: "center", border: "1px dashed var(--border)", borderRadius: "14px" }}>
@@ -110,21 +143,19 @@ export default function ProyectoDetallePage() {
         </div>
       )}
 
-      {/* Fases */}
-      {implementaciones.map((impl) => {
+      {/* ── KANBAN VIEW ── */}
+      {vista === "kanban" && implementaciones.map((impl) => {
         const tareasPorCol = COLUMNAS.reduce<Record<string, any[]>>((acc, col) => {
           acc[col.key] = (impl.tareas ?? []).filter((t: any) => t.columna === col.key)
             .sort((a: any, b: any) => a.orden - b.orden);
           return acc;
         }, {});
-
         const totalTareas = impl.tareas?.length ?? 0;
         const completadas = tareasPorCol["completado"]?.length ?? 0;
         const pct = totalTareas > 0 ? Math.round((completadas / totalTareas) * 100) : 0;
 
         return (
           <div key={impl.id} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px", overflow: "hidden" }}>
-            {/* Header fase */}
             <div style={{ padding: "0.9rem 1.25rem", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
               <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text-primary)", flex: 1 }}>{impl.nombre}</span>
               <span style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{completadas}/{totalTareas} tareas</span>
@@ -134,20 +165,14 @@ export default function ProyectoDetallePage() {
               <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "var(--verde)" }}>{pct}%</span>
             </div>
 
-            {/* Kanban (solo lectura) */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", overflowX: "auto" }}>
               {COLUMNAS.map((col, colIdx) => {
                 const tareas = tareasPorCol[col.key];
                 return (
-                  <div
-                    key={col.key}
-                    style={{
-                      borderRight: colIdx < COLUMNAS.length - 1 ? "1px solid var(--border)" : "none",
-                      padding: "1rem",
-                      minWidth: "180px",
-                      background: col.bg,
-                    }}
-                  >
+                  <div key={col.key} style={{
+                    borderRight: colIdx < COLUMNAS.length - 1 ? "1px solid var(--border)" : "none",
+                    padding: "1rem", minWidth: "180px", background: col.bg,
+                  }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.75rem" }}>
                       <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: col.color, flexShrink: 0 }} />
                       <span style={{ fontSize: "0.7rem", fontWeight: 700, color: col.color, textTransform: "uppercase", letterSpacing: "0.05em" }}>{col.label}</span>
@@ -157,11 +182,7 @@ export default function ProyectoDetallePage() {
                       {tareas.map((tarea: any) => {
                         const pri = PRIORIDADES[tarea.prioridad] ?? PRIORIDADES["media"];
                         return (
-                          <div
-                            key={tarea.id}
-                            style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "10px", padding: "0.7rem 0.85rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}
-                          >
-                            {/* Prioridad */}
+                          <div key={tarea.id} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "10px", padding: "0.7rem 0.85rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                             <span style={{ fontSize: "0.62rem", fontWeight: 700, padding: "0.15rem 0.5rem", borderRadius: "999px", background: `${pri.color}18`, color: pri.color, textTransform: "uppercase", alignSelf: "flex-start" }}>
                               {pri.label}
                             </span>
@@ -169,13 +190,11 @@ export default function ProyectoDetallePage() {
                             {tarea.descripcion && (
                               <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", margin: 0, lineHeight: 1.4 }}>{tarea.descripcion}</p>
                             )}
-                            {/* Footer: avatares + fecha */}
                             {(tarea.responsables?.length > 0 || tarea.fechaLimite) && (
                               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "0.1rem" }}>
                                 {tarea.responsables?.length > 0 ? (
-                                  <div style={{ display: "flex", alignItems: "center" }}>
+                                  <div style={{ display: "flex" }}>
                                     {tarea.responsables.map((r: any, i: number) => {
-                                      const AVATAR_COLORS = ["#4A8B00", "#0ea5e9", "#8b5cf6", "#f59e0b", "#ec4899", "#06b6d4"];
                                       const bg = AVATAR_COLORS[r.nombre.charCodeAt(0) % AVATAR_COLORS.length];
                                       return (
                                         <div key={r.id} title={r.nombre} style={{
@@ -216,6 +235,119 @@ export default function ProyectoDetallePage() {
           </div>
         );
       })}
+
+      {/* ── LISTA VIEW ── */}
+      {vista === "lista" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {implementaciones.map((impl) => {
+            const tareas: any[] = impl.tareas ?? [];
+            if (tareas.length === 0) return null;
+
+            const thStyle: React.CSSProperties = {
+              padding: "0.5rem 0.75rem", textAlign: "left",
+              fontSize: "0.68rem", fontWeight: 700, color: "var(--text-muted)",
+              textTransform: "uppercase", letterSpacing: "0.05em",
+              whiteSpace: "nowrap", borderBottom: "1px solid var(--border)",
+              background: "var(--bg-soft)",
+            };
+            const tdStyle: React.CSSProperties = {
+              padding: "0.55rem 0.75rem", fontSize: "0.78rem",
+              color: "var(--text-primary)", borderBottom: "1px solid var(--border)",
+              verticalAlign: "middle",
+            };
+
+            return (
+              <div key={impl.id} style={{ border: "1px solid var(--border)", borderRadius: "14px", overflow: "hidden" }}>
+                <div style={{ padding: "0.7rem 1rem", background: "var(--bg-soft)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                  <span style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--text-primary)" }}>{impl.nombre}</span>
+                  <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>
+                    {tareas.length} tarea{tareas.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr>
+                        <th style={thStyle}>Tarea</th>
+                        <th style={thStyle}>Estado</th>
+                        <th style={thStyle}>Prioridad</th>
+                        <th style={thStyle}>Responsables</th>
+                        <th style={thStyle}>Inicio</th>
+                        <th style={thStyle}>Límite</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tareas.map((t: any, idx: number) => {
+                        const col = COLUMNAS.find((c) => c.key === t.columna) ?? COLUMNAS[0];
+                        const pri = PRIORIDADES[t.prioridad] ?? { label: t.prioridad, color: "#6B7280" };
+                        const isLast = idx === tareas.length - 1;
+                        return (
+                          <tr key={t.id}
+                            style={{ background: "var(--bg)", transition: "background 0.1s" }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = "var(--bg-soft)"; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLTableRowElement).style.background = "var(--bg)"; }}
+                          >
+                            <td style={{ ...tdStyle, borderBottom: isLast ? "none" : tdStyle.borderBottom, maxWidth: "280px" }}>
+                              <span style={{ fontWeight: 600 }}>{t.titulo}</span>
+                              {t.descripcion && (
+                                <p style={{ margin: "0.15rem 0 0", fontSize: "0.7rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "260px" }}>
+                                  {t.descripcion}
+                                </p>
+                              )}
+                            </td>
+                            <td style={{ ...tdStyle, borderBottom: isLast ? "none" : tdStyle.borderBottom }}>
+                              <span style={{ fontSize: "0.65rem", fontWeight: 700, padding: "0.2rem 0.55rem", borderRadius: "999px", background: `${col.color}18`, color: col.color, whiteSpace: "nowrap", border: `1px solid ${col.color}40` }}>
+                                {col.label}
+                              </span>
+                            </td>
+                            <td style={{ ...tdStyle, borderBottom: isLast ? "none" : tdStyle.borderBottom }}>
+                              <span style={{ fontSize: "0.65rem", fontWeight: 700, padding: "0.2rem 0.55rem", borderRadius: "999px", background: `${pri.color}18`, color: pri.color, whiteSpace: "nowrap" }}>
+                                {pri.label}
+                              </span>
+                            </td>
+                            <td style={{ ...tdStyle, borderBottom: isLast ? "none" : tdStyle.borderBottom }}>
+                              {t.responsables?.length > 0 ? (
+                                <div style={{ display: "flex", alignItems: "center" }}>
+                                  {t.responsables.slice(0, 3).map((r: any, i: number) => {
+                                    const bg = AVATAR_COLORS[r.nombre.charCodeAt(0) % AVATAR_COLORS.length];
+                                    return (
+                                      <div key={r.id} title={r.nombre} style={{
+                                        width: 22, height: 22, borderRadius: "50%", background: bg,
+                                        display: "flex", alignItems: "center", justifyContent: "center",
+                                        fontSize: "0.58rem", fontWeight: 700, color: "#fff",
+                                        border: "2px solid var(--bg)", marginLeft: i > 0 ? -6 : 0,
+                                      }}>
+                                        {r.nombre.trim().charAt(0).toUpperCase()}
+                                      </div>
+                                    );
+                                  })}
+                                  {t.responsables.length > 3 && (
+                                    <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", marginLeft: "4px" }}>+{t.responsables.length - 3}</span>
+                                  )}
+                                </div>
+                              ) : <span style={{ color: "var(--text-muted)", fontSize: "0.72rem" }}>—</span>}
+                            </td>
+                            <td style={{ ...tdStyle, borderBottom: isLast ? "none" : tdStyle.borderBottom, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+                              {fmt(t.fechaInicio)}
+                            </td>
+                            <td style={{ ...tdStyle, borderBottom: isLast ? "none" : tdStyle.borderBottom, whiteSpace: "nowrap" }}>
+                              {t.fechaLimite ? (
+                                <span style={{ color: new Date(t.fechaLimite) < new Date() && t.columna !== "completado" ? "#ef4444" : "var(--text-muted)" }}>
+                                  {fmt(t.fechaLimite)}
+                                </span>
+                              ) : "—"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

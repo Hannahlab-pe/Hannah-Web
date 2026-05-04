@@ -1,247 +1,200 @@
 "use client";
 
-const timelineEntries = [
-  {
-    date: "16 Abr 2026",
-    title: "Deploy realizado - Migracion Cloud Weber",
-    description:
-      "Se completo el deploy de la infraestructura en AWS con Terraform. Todos los servicios migrados estan operativos en produccion con zero downtime.",
-    color: "#4A8B00",
-    category: "Deploy",
-  },
-  {
-    date: "15 Abr 2026",
-    title: "Modulo de inventario completado - ERP Odoo",
-    description:
-      "Finalizacion del modulo de inventario con integracion de codigo de barras y reportes automaticos para Betondecken. Incluye validacion de stock en tiempo real.",
-    color: "#2563EB",
-    category: "Modulo",
-  },
-  {
-    date: "14 Abr 2026",
-    title: "Nuevo feature - Bot WhatsApp Entel",
-    description:
-      "Se implemento el flujo de atencion automatizada con IA para consultas frecuentes. El bot ahora resuelve el 60% de tickets sin intervencion humana.",
-    color: "#4A8B00",
-    category: "Feature",
-  },
-  {
-    date: "12 Abr 2026",
-    title: "Sprint review - Automatizacion Ventas Bosch",
-    description:
-      "Revision del sprint 8 con el equipo de Bosch. Se aprobaron los workflows de cotizacion automatica y se definio el backlog para el siguiente sprint.",
-    color: "#F59E0B",
-    category: "Reunion",
-  },
-  {
-    date: "10 Abr 2026",
-    title: "Bug corregido - Web Corporativa v2",
-    description:
-      "Se corrigio un problema critico de renderizado en Safari iOS que afectaba la seccion de servicios. Tambien se optimizo la carga de imagenes con lazy loading.",
-    color: "#DC2626",
-    category: "Bug fix",
-  },
-  {
-    date: "08 Abr 2026",
-    title: "Reunion con cliente - Grupo Romero",
-    description:
-      "Reunion de kick-off para retomar el proyecto Dashboard Analytics. Se acordaron nuevas fechas de entrega y se redefinieron prioridades del backlog.",
-    color: "#F59E0B",
-    category: "Reunion",
-  },
-  {
-    date: "05 Abr 2026",
-    title: "Deploy staging - Bot WhatsApp Entel",
-    description:
-      "Deploy del bot en ambiente de staging para pruebas de integracion con el sistema CRM de Entel. Pruebas de carga programadas para la proxima semana.",
-    color: "#2563EB",
-    category: "Deploy",
-  },
-  {
-    date: "03 Abr 2026",
-    title: "Nuevo feature - ERP Odoo Betondecken",
-    description:
-      "Implementacion del modulo de compras con aprobacion multinivel. Incluye notificaciones por correo y dashboard de seguimiento de ordenes de compra.",
-    color: "#4A8B00",
-    category: "Feature",
-  },
-  {
-    date: "01 Abr 2026",
-    title: "Migracion de base de datos - Weber",
-    description:
-      "Se completo la migracion de 2.3 millones de registros desde el servidor on-premise hacia RDS en AWS. Validacion de integridad de datos al 100%.",
-    color: "#2563EB",
-    category: "Modulo",
-  },
-  {
-    date: "28 Mar 2026",
-    title: "Sprint planning - Automatizacion Ventas Bosch",
-    description:
-      "Planificacion del sprint 8 con foco en la integracion del modulo de reportes con Power BI y la automatizacion del pipeline de ventas regional.",
-    color: "#F59E0B",
-    category: "Reunion",
-  },
-];
+import { useState, useEffect } from "react";
+import { getMisProyectos, getImplementacionesByProyecto } from "@/libs/api";
+import LoadingSpinner from "@/components/shared/loading-spinner";
 
-const categoryColors: Record<string, { bg: string; text: string }> = {
-  Deploy: { bg: "rgba(74, 139, 0, 0.1)", text: "#4A8B00" },
-  Modulo: { bg: "rgba(37, 99, 235, 0.1)", text: "#2563EB" },
-  Feature: { bg: "rgba(74, 139, 0, 0.1)", text: "#4A8B00" },
-  Reunion: { bg: "rgba(245, 158, 11, 0.1)", text: "#F59E0B" },
-  "Bug fix": { bg: "rgba(220, 38, 38, 0.1)", text: "#DC2626" },
+const COLUMNA_LABEL: Record<string, string> = {
+  por_hacer:   "Por hacer",
+  en_progreso: "En progreso",
+  en_revision: "En revisión",
+  completado:  "Completado",
 };
 
+const COLUMNA_COLOR: Record<string, string> = {
+  por_hacer:   "#6B7280",
+  en_progreso: "#2563EB",
+  en_revision: "#F59E0B",
+  completado:  "#4A8B00",
+};
+
+function fmt(fecha?: string | null) {
+  if (!fecha) return null;
+  return new Date(fecha).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+interface TareaEntry {
+  id: string;
+  titulo: string;
+  descripcion?: string;
+  columna: string;
+  prioridad?: string;
+  fechaLimite?: string;
+  fechaInicio?: string;
+  implementacionNombre: string;
+  proyectoNombre: string;
+}
+
 export default function AvancesPage() {
+  const [tareas, setTareas] = useState<TareaEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function cargar() {
+      try {
+        const proyectos = await getMisProyectos();
+        const impls = await Promise.all(
+          proyectos.map((p: any) =>
+            getImplementacionesByProyecto(p.id).then((list: any[]) =>
+              list.map((impl) => ({ ...impl, proyectoNombre: p.nombre }))
+            )
+          )
+        );
+        const todas: TareaEntry[] = impls.flat().flatMap((impl: any) =>
+          (impl.tareas ?? []).map((t: any) => ({
+            id: t.id,
+            titulo: t.titulo,
+            descripcion: t.descripcion,
+            columna: t.columna,
+            prioridad: t.prioridad,
+            fechaLimite: t.fechaLimite,
+            fechaInicio: t.fechaInicio,
+            implementacionNombre: impl.nombre,
+            proyectoNombre: impl.proyectoNombre,
+          }))
+        );
+        todas.sort((a, b) => {
+          const da = a.fechaLimite ? new Date(a.fechaLimite).getTime() : 0;
+          const db = b.fechaLimite ? new Date(b.fechaLimite).getTime() : 0;
+          return db - da;
+        });
+        setTareas(todas);
+      } catch (e: any) {
+        setError(e.message ?? "Error al cargar avances");
+      } finally {
+        setLoading(false);
+      }
+    }
+    cargar();
+  }, []);
+
+  if (loading) return <LoadingSpinner text="Cargando avances..." />;
+  if (error) return <div style={{ padding: "2rem", color: "#ef4444", fontSize: "0.85rem" }}>{error}</div>;
+
+  const completadas = tareas.filter((t) => t.columna === "completado");
+  const enCurso     = tareas.filter((t) => t.columna === "en_progreso" || t.columna === "en_revision");
+  const pendientes  = tareas.filter((t) => t.columna === "por_hacer");
+
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
+
       {/* Header */}
-      <div style={{ marginBottom: "1.5rem" }}>
-        <h1
-          style={{
-            fontSize: "1.75rem",
-            fontWeight: 700,
-            color: "var(--text-primary)",
-            marginBottom: "0.25rem",
-            fontFamily: "'Google Sans', system-ui",
-          }}
-        >
+      <div>
+        <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
           Avances
         </h1>
-        <p
-          style={{
-            fontSize: "0.9rem",
-            color: "var(--text-secondary)",
-            fontFamily: "'Outfit', sans-serif",
-          }}
-        >
-          Timeline de actualizaciones y milestones de tus proyectos
+        <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: "0.25rem 0 0" }}>
+          Estado actual de todas las tareas en tus proyectos
         </p>
       </div>
 
-      {/* Timeline */}
-      <div style={{ position: "relative", paddingLeft: "2rem" }}>
-        {/* Vertical line */}
-        <div
-          style={{
-            position: "absolute",
-            left: "7px",
-            top: "8px",
-            bottom: "8px",
-            width: "2px",
-            background: "var(--border)",
-            borderRadius: "999px",
-          }}
-        />
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-          {timelineEntries.map((entry, i) => (
-            <div
-              key={i}
-              style={{
-                position: "relative",
-                paddingBottom: "1.25rem",
-              }}
-            >
-              {/* Status dot */}
-              <div
-                style={{
-                  position: "absolute",
-                  left: "-2rem",
-                  top: "1.4rem",
-                  width: "16px",
-                  height: "16px",
-                  borderRadius: "50%",
-                  background: entry.color,
-                  border: "3px solid var(--bg)",
-                  boxShadow: `0 0 0 2px ${entry.color}33`,
-                  zIndex: 1,
-                }}
-              />
-
-              {/* Card */}
-              <div
-                style={{
-                  background: "var(--bg)",
-                  border: "1px solid var(--border)",
-                  borderRadius: "12px",
-                  padding: "1.15rem 1.3rem",
-                  transition: "box-shadow 0.2s ease, border-color 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "0 4px 20px rgba(0,0,0,0.06)";
-                  (e.currentTarget as HTMLDivElement).style.borderColor = entry.color;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-                  (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)";
-                }}
-              >
-                {/* Date + category */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.6rem",
-                    marginBottom: "0.5rem",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: "0.72rem",
-                      color: "var(--text-muted)",
-                      fontFamily: "'Outfit', sans-serif",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {entry.date}
-                  </span>
-                  <span
-                    style={{
-                      padding: "0.15rem 0.6rem",
-                      borderRadius: "999px",
-                      fontSize: "0.68rem",
-                      fontWeight: 600,
-                      background: categoryColors[entry.category]?.bg || "var(--bg-soft)",
-                      color: categoryColors[entry.category]?.text || "var(--text-secondary)",
-                      fontFamily: "'Outfit', sans-serif",
-                    }}
-                  >
-                    {entry.category}
-                  </span>
-                </div>
-
-                {/* Title */}
-                <h3
-                  style={{
-                    fontSize: "0.95rem",
-                    fontWeight: 700,
-                    color: "var(--text-primary)",
-                    fontFamily: "'Google Sans', system-ui",
-                    marginBottom: "0.35rem",
-                    lineHeight: 1.35,
-                  }}
-                >
-                  {entry.title}
-                </h3>
-
-                {/* Description */}
-                <p
-                  style={{
-                    fontSize: "0.82rem",
-                    color: "var(--text-secondary)",
-                    fontFamily: "'Outfit', sans-serif",
-                    lineHeight: 1.55,
-                    margin: 0,
-                  }}
-                >
-                  {entry.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Resumen */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.85rem" }}>
+        {[
+          { label: "Completadas", count: completadas.length, color: "#4A8B00" },
+          { label: "En curso",    count: enCurso.length,     color: "#2563EB" },
+          { label: "Pendientes",  count: pendientes.length,  color: "#6B7280" },
+          { label: "Total",       count: tareas.length,      color: "var(--verde)" },
+        ].map((s) => (
+          <div key={s.label} style={{
+            background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "14px",
+            padding: "1.1rem 1.25rem", display: "flex", flexDirection: "column", gap: "0.2rem",
+          }}>
+            <p style={{ fontSize: "1.8rem", fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.count}</p>
+            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: 0 }}>{s.label}</p>
+          </div>
+        ))}
       </div>
+
+      {tareas.length === 0 ? (
+        <div style={{ padding: "3rem", textAlign: "center", border: "1px dashed var(--border)", borderRadius: "14px" }}>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", margin: 0 }}>
+            Aún no hay tareas en tus proyectos. El equipo estará actualizando el progreso aquí.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+
+          {/* Timeline */}
+          <h3 style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--text-primary)", margin: "0 0 0.5rem" }}>
+            Todas las tareas
+          </h3>
+
+          <div style={{ position: "relative", paddingLeft: "1.75rem" }}>
+            <div style={{
+              position: "absolute", left: "7px", top: "8px", bottom: "8px",
+              width: "2px", background: "var(--border)", borderRadius: "999px",
+            }} />
+
+            {tareas.map((t) => {
+              const color = COLUMNA_COLOR[t.columna] ?? "#6B7280";
+              return (
+                <div key={t.id} style={{ position: "relative", paddingBottom: "0.85rem" }}>
+                  <div style={{
+                    position: "absolute", left: "-1.75rem", top: "1.2rem",
+                    width: "14px", height: "14px", borderRadius: "50%",
+                    background: color, border: "3px solid var(--bg)",
+                    boxShadow: `0 0 0 2px ${color}33`, zIndex: 1,
+                  }} />
+
+                  <div style={{
+                    background: "var(--bg)", border: "1px solid var(--border)",
+                    borderRadius: "12px", padding: "0.9rem 1.1rem",
+                    transition: "border-color 0.15s, box-shadow 0.15s",
+                  }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = color;
+                      (e.currentTarget as HTMLDivElement).style.boxShadow = `0 4px 16px rgba(0,0,0,0.06)`;
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)";
+                      (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
+                      <span style={{
+                        fontSize: "0.62rem", fontWeight: 700, padding: "0.15rem 0.55rem",
+                        borderRadius: "999px", background: `${color}18`, color,
+                        border: `1px solid ${color}40`,
+                      }}>
+                        {COLUMNA_LABEL[t.columna] ?? t.columna}
+                      </span>
+                      <span style={{ fontSize: "0.65rem", color: "var(--text-muted)" }}>
+                        {t.proyectoNombre} · {t.implementacionNombre}
+                      </span>
+                      {t.fechaLimite && (
+                        <span style={{ fontSize: "0.65rem", color: "var(--text-muted)", marginLeft: "auto" }}>
+                          {fmt(t.fechaLimite)}
+                        </span>
+                      )}
+                    </div>
+
+                    <p style={{ fontSize: "0.82rem", fontWeight: 600, color: "var(--text-primary)", margin: 0, lineHeight: 1.35 }}>
+                      {t.titulo}
+                    </p>
+                    {t.descripcion && (
+                      <p style={{ fontSize: "0.73rem", color: "var(--text-muted)", margin: "0.25rem 0 0", lineHeight: 1.45 }}>
+                        {t.descripcion}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

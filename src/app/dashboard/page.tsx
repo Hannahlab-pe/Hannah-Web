@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import Grainient from "@/components/grainient";
 import {
-  getMisProyectos, getMisFacturas, getMisTickets, getMisReuniones,
+  getMisProyectos, getMisTickets, getMisReuniones,
   getAdminProyectos, getAdminTickets, getAdminReuniones, getClientes,
   getUsuarioGuardado,
 } from "@/libs/api";
@@ -111,7 +111,6 @@ export default function DashboardPage() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [reuniones, setReuniones] = useState<any[]>([]);
   const [clientes, setClientes] = useState<any[]>([]);
-  const [facturas, setFacturas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -127,10 +126,10 @@ export default function DashboardPage() {
           setProyectos(p); setTickets(t); setReuniones(r);
           setClientes(c.filter((u: any) => u.rol === "cliente"));
         } else {
-          const [p, f, t, r] = await Promise.all([
-            getMisProyectos(), getMisFacturas(), getMisTickets(), getMisReuniones(),
+          const [p, t, r] = await Promise.all([
+            getMisProyectos(), getMisTickets(), getMisReuniones(),
           ]);
-          setProyectos(p); setFacturas(f); setTickets(t); setReuniones(r);
+          setProyectos(p); setTickets(t); setReuniones(r);
         }
       } catch {}
       finally { setLoading(false); }
@@ -207,7 +206,6 @@ export default function DashboardPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.85rem" }}>
         {(isAdmin ? statsAdmin : [
           { icon: "M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z", value: String(proyectos.filter(p => p.estado !== "completado").length), label: "Proyectos activos", sub: `${proyectos.length} en total` },
-          { icon: "M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z", value: String(facturas.filter(f => f.estado === "pendiente").length), label: "Facturas pendientes", sub: `${facturas.length} facturas` },
           { icon: "M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z", value: String(tickets.filter(t => t.estado === "abierto" || t.estado === "pendiente").length), label: "Tickets abiertos", sub: `${tickets.length} en total` },
           { icon: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5", value: reuniones.filter(r => new Date(r.fecha) >= hoy).length > 0 ? new Date(reuniones.filter(r => new Date(r.fecha) >= hoy).sort((a,b) => new Date(a.fecha).getTime()-new Date(b.fecha).getTime())[0].fecha).toLocaleDateString("es-PE",{day:"2-digit",month:"short"}) : "—", label: "Próxima reunión", sub: reuniones.filter(r => new Date(r.fecha) >= hoy).sort((a,b) => new Date(a.fecha).getTime()-new Date(b.fecha).getTime())[0]?.titulo ?? "Sin reuniones" },
         ]).map((s: any) => (
