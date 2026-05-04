@@ -221,9 +221,9 @@ export default function LoginPage() {
                 <input type="checkbox" style={{ accentColor: "var(--verde)", width: "14px", height: "14px" }} />
                 <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Recordarme</span>
               </label>
-              <button type="button" style={{ background: "none", border: "none", color: "var(--verde)", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer" }}>
-                Olvidaste tu contrasena?
-              </button>
+              <Link href="/login/recuperar" style={{ color: "var(--verde)", fontSize: "0.8rem", fontWeight: 600, textDecoration: "none" }}>
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
 
             {/* Error */}

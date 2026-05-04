@@ -211,6 +211,14 @@ export function cambiarPassword(data: { passwordActual: string; passwordNueva: s
   return apiFetch<{ ok: boolean }>('/auth/cambiar-password', { method: 'PATCH', body: JSON.stringify(data) });
 }
 
+export function forgotPassword(email: string) {
+  return apiFetch<{ ok: boolean }>('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+}
+
+export function resetPassword(token: string, password: string) {
+  return apiFetch<{ ok: boolean }>('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, password }) });
+}
+
 // ── Admin: Clientes ───────────────────────────────────────────────
 
 export function getClientes() {
